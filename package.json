@@ -20,6 +20,9 @@
     "url": "https://github.com/redbadger/reflex/issues"
   },
   "main": "index.js",
+  "files": [
+    "src/server.js"
+  ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
