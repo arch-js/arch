@@ -1,0 +1,35 @@
+{
+  "name": "reflex",
+  "version": "0.0.1",
+  "description": "Web application framework for React",
+  "homepage": "https://github.com/redbadger/reflex",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/redbadger/reflex.git"
+  },
+  "keywords": [
+    "Reflex",
+    "Framework",
+    "React",
+    "Reactive",
+    "Isomorphic",
+    "Immutable",
+    "Cursor"
+  ],
+  "bugs": {
+    "url": "https://github.com/redbadger/reflex/issues"
+  },
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "LiveScript": "^1.3.1",
+    "express": "^4.10.6",
+    "immutable": "^3.4.1",
+    "jade": "^1.8.2",
+    "page": "https://github.com/charypar/page.js/tarball/server-side-fix",
+    "prelude-ls": "^1.1.1",
+    "react": "^0.12.2"
+  }
+}

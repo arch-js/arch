@@ -1,0 +1,21 @@
+doctype html
+html(lang="en")
+  head
+    meta(charset="utf-8")
+    title React Framework Demo
+    -// figure out how to inject these from some config. OR should the index.jade be under the app's control?
+    -// link(rel="stylesheet", href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.0/css/bootstrap.min.css")
+    link(rel="stylesheet", href="/dist/bootstrap.css")
+    style
+      :css
+        html, body, #application {
+          height: 100%;
+        }
+  body
+    #application(data-reflex-app-state=JSON.stringify(state))
+      != body
+
+    script(type='text/javascript' src="/dist/app.js")
+    script.
+      var Application = require("app");
+      Application.start();
