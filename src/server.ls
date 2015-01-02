@@ -17,7 +17,7 @@ run = (app, port, asset-path) ->
     app.render request.original-url, (app-state, body) ->
       response.render 'index', body: body, state: app-state
 
-  server.listen process.env.SERVER_PORT || port
+  server.listen port
   console.log "Server running on port", port
 
 module.exports = do
