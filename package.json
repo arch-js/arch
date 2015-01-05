@@ -24,7 +24,7 @@
     "src/server.js"
   ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "./node_modules/jasmine/bin/jasmine.js"
   },
   "dependencies": {
     "LiveScript": "^1.3.1",
@@ -34,5 +34,8 @@
     "page": "https://github.com/charypar/page.js/tarball/server-side-fix",
     "prelude-ls": "^1.1.1",
     "react": "^0.12.2"
+  },
+  "devDependencies": {
+    "jasmine": "^2.1.1"
   }
 }
