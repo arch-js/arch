@@ -24,16 +24,20 @@ object-cursor = (root, data, path) ->
   new Cursor root, data, path
 
 notify-listeners = (listeners, path, new-data) ->
-  all = [0 to path.length]
+  paths = [0 to path.length]
   |> map (-> path |> take it)
   |> reverse
 
-  all |> each (path) ->
+  paths |> each (path) ->
     key = path |> join '.'
 
-    if is-type 'Array', listeners[key]
-      listeners[key] |> each ->
-        it(new-data.get-in path)
+    return unless is-type 'Array', listeners[key]
+
+    listeners[key] |> each ->
+      payload = new-data.get-in path
+      payload .= toJS! if payload.toJS
+
+      it(payload)
 
 Cursor = (root, data, path) ->
   @_path = path
