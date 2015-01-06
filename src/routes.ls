@@ -9,7 +9,7 @@ split-url = (url) ->
   [path, rest] = split-at qs-index, url
   rest = drop 1, rest
 
-  h-index = url.index-of '#'
+  h-index = rest.index-of '#'
   return [path, rest, null] if h-index < 0
 
   [qs, hash] = split-at h-index, rest
