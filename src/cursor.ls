@@ -9,6 +9,8 @@ array-cursor = (root, data, len, path) ->
   array._path = path
   array._root = root or this
   array._data = if data then Immutable.fromJS(data) else null
+  array._listeners = {}
+  array._updates = []
 
   # Support all the cursor API
   array.get = Cursor.prototype.get
@@ -38,11 +40,39 @@ notify-listeners = (listeners, path, new-data) !->
 
       it(payload)
 
+flush-updates = (updates) ->
+  while updates.length > 0
+    [cursor, update] = updates[0]
+    perform-update cursor, update
+
+    updates.shift!
+
+perform-update = (cursor, update) ->
+  old-val = cursor.raw!
+
+  new-val = update cursor.deref!
+  new-val = Immutable.fromJS(new-val) if is-type 'Array', new-val or is-type 'Object', new-val
+
+  return if old-val is new-val
+  return if Immutable.is(old-val, new-val)
+
+  new-data = if empty cursor._path
+    new-val
+  else
+    cursor._root._data.set-in cursor._path, new-val
+
+  # Swap
+  cursor._root._swap new-data
+
+  # Notify about the change
+  notify-listeners cursor._root._listeners, cursor._path, new-data
+
 Cursor = (root, data, path) ->
   @_path = path
   @_root = root or this
   @_data = if data then Immutable.fromJS(data) else null
   @_listeners = {}
+  @_updates = []
 
   this
 
@@ -67,24 +97,15 @@ Cursor.prototype.raw = ->
   @_root._data.get-in @_path
 
 Cursor.prototype.update = (cbk) ->
-  old-val = this.raw!
+  updates = @_root._updates
+  updates.push [this, cbk]
+  return unless updates.length < 2
 
-  new-val = cbk this.deref!
-  new-val = Immutable.fromJS(new-val) if is-type 'Array', new-val or is-type 'Object', new-val
+  while updates.length > 0
+    [cursor, update] = updates[0]
+    perform-update cursor, update
 
-  return if old-val is new-val
-  return if Immutable.is(old-val, new-val)
-
-  new-data = if empty @_path
-    new-val
-  else
-    @_root._data.set-in @_path, new-val
-
-  # Swap
-  @_root._swap new-data
-
-  # Notify about the change
-  notify-listeners @_root._listeners, @_path, new-data
+    updates.shift!
 
 Cursor.prototype._swap = (new-data) ->
   throw "_swap can only be called on the root cursor" unless this is @_root

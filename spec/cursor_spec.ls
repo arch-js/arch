@@ -171,3 +171,21 @@ describe "cursor" (_) ->
 
       expect raw-tom-b .to-be .raw-tom-a
       expect observer .not.to-have-been-called!
+
+    it "serialises recursive updates" ->
+      data = cursor raw-data
+      age = data.get \person.age
+
+      trace = []
+
+      age.on-change ->
+        return if it > 40
+
+        trace.push it
+        age.update -> it + 1
+        trace.push it
+
+      age.update -> it + 1
+
+      expect trace .to-equal [36, 36, 37, 37, 38, 38, 39, 39, 40, 40]
+
