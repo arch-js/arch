@@ -67,13 +67,18 @@ Cursor.prototype.raw = ->
   @_root._data.get-in @_path
 
 Cursor.prototype.update = (cbk) ->
+  old-val = this.raw!
+
   new-val = cbk this.deref!
   new-val = Immutable.fromJS(new-val) if is-type 'Array', new-val or is-type 'Object', new-val
 
-  unless empty @_path
-    new-data = @_root._data.set-in @_path, new-val
+  return if old-val is new-val
+  return if Immutable.is(old-val, new-val)
+
+  new-data = if empty @_path
+    new-val
   else
-    new-data = new-val
+    @_root._data.set-in @_path, new-val
 
   # Swap
   @_root._swap new-data

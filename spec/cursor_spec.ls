@@ -101,6 +101,7 @@ describe "cursor" (_) ->
 
   describe "observation" (_) ->
     it "notifies on change to a path" ->
+      data = cursor raw-data
       name = data.get \person.first_name
 
       observer = jasmine.create-spy "observer"
@@ -142,3 +143,31 @@ describe "cursor" (_) ->
 
       payload = pets-observer.calls.args-for 0 .0
       expect payload.0.name .toBe 'Professor Catus'
+
+    it "does not update when simple value is the same after update" ->
+      data = cursor raw-data
+      name = data.get \person.first_name
+      raw-name-a = name.raw!
+
+      observer = jasmine.create-spy "observer"
+      name.on-change observer
+
+      name.update -> "John"
+      raw-name-b = name.raw!
+
+      expect raw-name-b .to-be raw-name-a
+      expect observer .not.to-have-been-called!
+
+    it "does not update when composite value is the same after update" ->
+      data = cursor raw-data
+      tom = data.get \person.pets.0
+      raw-tom-a = tom.raw!
+
+      observer = jasmine.create-spy "observer"
+      tom.on-change observer
+
+      tom.update -> it import name: 'Tom'
+      raw-tom-b = tom.raw!
+
+      expect raw-tom-b .to-be .raw-tom-a
+      expect observer .not.to-have-been-called!
