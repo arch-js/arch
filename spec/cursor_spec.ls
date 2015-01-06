@@ -22,7 +22,7 @@ describe "cursor" (_) ->
 
     it "doesn't affect original data when the derefed data is changed" ->
       person = data.get \person
-      person.deref!.first_name = "Dan"
+      person.deref!.first_name = "George"
 
       expect data.deref!.person.first_name .toBe "John"
 
@@ -43,17 +43,25 @@ describe "cursor" (_) ->
       data = cursor raw-data
 
       name = data.get \person.first_name
-      name.update -> "Bob"
+      name.update -> "Ringo"
 
-      expect data.deref!.person.first_name .toBe "Bob"
+      expect data.deref!.person.first_name .toBe "Ringo"
 
-    it "provides current value on update" ->
+    it "allows atomic updates" ->
       data = cursor raw-data
 
       age = data.get \person.age
       age.update -> it + 1
 
       expect data.deref!.person.age .toBe 36
+
+    it "allows atomic updates even for composite values" ->
+      data = cursor raw-data
+
+      person = data.get \person
+      person.update -> it import first_name: "Paul"
+
+      expect data.deref!.person.first_name .toBe "Paul"
 
     it "allows for larger cumulative updates" ->
       data = cursor raw-data
@@ -77,9 +85,9 @@ describe "cursor" (_) ->
       observer = jasmine.create-spy "observer"
       name.on-change observer
 
-      name.update -> "Dave"
+      name.update -> "George"
 
-      expect observer .to-have-been-called-with "Dave"
+      expect observer .to-have-been-called-with "George"
 
     it "notifies on all parents with the respective value" ->
       data = cursor raw-data
@@ -93,12 +101,12 @@ describe "cursor" (_) ->
       name-observer = jasmine.create-spy "name-observer"
       name.on-change name-observer
 
-      name.update -> "Dave"
+      name.update -> "George"
 
-      expect name-observer .to-have-been-called-with "Dave"
+      expect name-observer .to-have-been-called-with "George"
 
       payload = person-observer.calls.args-for 0 .0
-      expect payload.first_name .toBe "Dave"
+      expect payload.first_name .toBe "George"
 
     it "notifies on all parents even with a list in the path" ->
       data = cursor raw-data
