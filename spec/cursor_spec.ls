@@ -104,8 +104,6 @@ describe "cursor" (_) ->
 
     payload = person-observer.calls.args-for 0 .0
     expect payload.first_name .toBe "Dave"
-    expect payload.last_name .toBe "Johnson"
-    expect payload.age .toBe 35
 
   it "notifies on all parents even in with a list in the path" ->
     data = cursor raw-data
