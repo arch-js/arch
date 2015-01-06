@@ -17,18 +17,16 @@ array-cursor = (root, data, len, path) ->
   array.on-change = Cursor.prototype.on-change
   array._swap = Cursor.prototype._swap
 
-
   return array
 
 object-cursor = (root, data, path) ->
   new Cursor root, data, path
 
-notify-listeners = (listeners, path, new-data) ->
+notify-listeners = (listeners, path, new-data) !->
   paths = [0 to path.length]
   |> map (-> path |> take it)
   |> reverse
-
-  paths |> each (path) ->
+  |> each (path) ->
     key = path |> join '.'
 
     return unless is-type 'Array', listeners[key]
@@ -47,7 +45,7 @@ Cursor = (root, data, path) ->
 
   this
 
-Cursor.prototype._swap = (path, new-data) ->
+Cursor.prototype._swap = (new-data) ->
   throw "_swap can only be called on the root cursor" unless this is @_root
 
   @_data = new-data
@@ -77,7 +75,7 @@ Cursor.prototype.update = (cbk) ->
     new-data = new-val
 
   # Swap
-  @_root._swap @_path, new-data
+  @_root._swap new-data
 
   # Notify about the change
   notify-listeners @_root._listeners, @_path, new-data
