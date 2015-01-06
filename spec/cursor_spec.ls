@@ -26,6 +26,11 @@ describe "cursor" (_) ->
 
       expect data.deref!.person.first_name .toBe "John"
 
+    it "returns undefined if the path doesn't exist" ->
+      foo = data.get \this.doesnt.exist.at.all
+
+      expect foo .to-be null
+
   describe "to array" (_) ->
     it "derefs a array item" ->
       tom = data.get \person.pets.0
