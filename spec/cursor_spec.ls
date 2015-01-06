@@ -38,6 +38,22 @@ describe "cursor" (_) ->
       expect names.0 .toBe "Tom"
       expect names.1 .toBe "Huckleberry"
 
+  describe "raw access" (_) ->
+    it "returns raw data" ->
+      person = data.get \person .raw!
+
+      expect person.get-in [\first_name] .to-be "John"
+      expect (person.get-in [\pets] .toJS!) .to-equal raw-data.person.pets
+
+    it "passes a reference equality check" ->
+      tom1 = data.get \person.pets.0 .raw!
+      tom2 = data.get \person .raw!.get-in ['pets', 0]
+      not-tom = data.get \person.pets .raw!
+
+      expect tom1 .to-be tom2
+      expect not-tom .not.to-be tom1
+      expect not-tom .not.to-be tom2
+
   describe "stateful updates" (_) ->
     it "updates with a callback" ->
       data = cursor raw-data
