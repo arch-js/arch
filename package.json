@@ -19,6 +19,9 @@
   "bugs": {
     "url": "https://github.com/redbadger/reflex/issues"
   },
+  "bin": {
+    "reflex-server": "bin/server.js"
+  },
   "main": "index.js",
   "files": [
     "src/server.js"
