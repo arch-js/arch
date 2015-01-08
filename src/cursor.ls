@@ -9,26 +9,27 @@ array-cursor = (root, data, len, path) ->
   array._path = path
   array._root = root or this
   array._data = if data then Immutable.fromJS(data) else null
+  array._listeners = {}
+  array._updates = []
 
   # Support all the cursor API
-  array.deref = Cursor.prototype.deref
   array.get = Cursor.prototype.get
+  array.deref = Cursor.prototype.deref
+  array.raw = Cursor.prototype.raw
   array.update = Cursor.prototype.update
-  array.on-change = Cursor.prototype.on-change
   array._swap = Cursor.prototype._swap
-
+  array.on-change = Cursor.prototype.on-change
 
   return array
 
 object-cursor = (root, data, path) ->
   new Cursor root, data, path
 
-notify-listeners = (listeners, path, new-data) ->
+notify-listeners = (listeners, path, new-data) !->
   paths = [0 to path.length]
   |> map (-> path |> take it)
   |> reverse
-
-  paths |> each (path) ->
+  |> each (path) ->
     key = path |> join '.'
 
     return unless is-type 'Array', listeners[key]
@@ -39,27 +40,47 @@ notify-listeners = (listeners, path, new-data) ->
 
       it(payload)
 
+flush-updates = (updates) ->
+  while updates.length > 0
+    [cursor, update] = updates[0]
+    perform-update cursor, update
+
+    updates.shift!
+
+perform-update = (cursor, update) ->
+  old-val = cursor.raw!
+
+  new-val = update cursor.deref!
+  new-val = Immutable.fromJS(new-val) if is-type 'Array', new-val or is-type 'Object', new-val
+
+  return if old-val is new-val
+  return if Immutable.is(old-val, new-val)
+
+  new-data = if empty cursor._path
+    new-val
+  else
+    cursor._root._data.set-in cursor._path, new-val
+
+  # Swap
+  cursor._root._swap new-data
+
+  # Notify about the change
+  notify-listeners cursor._root._listeners, cursor._path, new-data
+
 Cursor = (root, data, path) ->
   @_path = path
   @_root = root or this
   @_data = if data then Immutable.fromJS(data) else null
   @_listeners = {}
+  @_updates = []
 
   this
-
-Cursor.prototype._swap = (path, new-data) ->
-  throw "_swap can only be called on the root cursor" unless this is @_root
-
-  @_data = new-data
-
-Cursor.prototype.deref = ->
-  data = @_root._data.get-in @_path
-
-  if data and data.toJS then data.toJS! else data
 
 Cursor.prototype.get = (path) ->
   path = @_path ++ (split '.', path)
   val = @_root._data.get-in path
+
+  return null unless val
 
   # if the resulting object is a list, return array-cursor
   if val instanceof Immutable.List
@@ -67,20 +88,29 @@ Cursor.prototype.get = (path) ->
   else # otherwise object-cursor
     object-cursor @_root, null, path
 
+Cursor.prototype.deref = ->
+  data = this.raw!
+
+  if data and data.toJS then data.toJS! else data
+
+Cursor.prototype.raw = ->
+  @_root._data.get-in @_path
+
 Cursor.prototype.update = (cbk) ->
-  new-val = cbk this.deref!
-  new-val = Immutable.fromJS(new-val) if is-type 'Array', new-val or is-type 'Object', new-val
+  updates = @_root._updates
+  updates.push [this, cbk]
+  return unless updates.length < 2
 
-  unless empty @_path
-    new-data = @_root._data.set-in @_path, new-val
-  else
-    new-data = new-val
+  while updates.length > 0
+    [cursor, update] = updates[0]
+    perform-update cursor, update
 
-  # Swap
-  @_root._swap @_path, new-data
+    updates.shift!
 
-  # Notify about the change
-  notify-listeners @_root._listeners, @_path, new-data
+Cursor.prototype._swap = (new-data) ->
+  throw "_swap can only be called on the root cursor" unless this is @_root
+
+  @_data = new-data
 
 Cursor.prototype.on-change = (cbk) ->
   key = join '.', @_path
