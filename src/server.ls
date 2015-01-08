@@ -20,5 +20,5 @@ run = (app, port, asset-path) ->
   server.listen port
   console.log "Server running on port", port
 
-module.exports = do
+module.exports =
   run: run

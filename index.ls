@@ -1,4 +1,4 @@
-require! <[ react ]>
+require! <[ react path ]>
 
 factorify = (klass) ->
   react.create-factory klass
@@ -20,3 +20,6 @@ module.exports =
   create-component: create-component
   factorify: factorify
   factorify-all: factorify-all
+
+  # should this live here?
+  server-binary: path.resolve path.join __dirname, 'bin/server.js'
