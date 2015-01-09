@@ -13,12 +13,7 @@ array-cursor = (root, data, len, path) ->
   array._updates = []
 
   # Support all the cursor API
-  array.get = Cursor.prototype.get
-  array.deref = Cursor.prototype.deref
-  array.raw = Cursor.prototype.raw
-  array.update = Cursor.prototype.update
-  array._swap = Cursor.prototype._swap
-  array.on-change = Cursor.prototype.on-change
+  array{get, deref, raw, update, _swap, on-change} = Cursor.prototype
 
   return array
 
