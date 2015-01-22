@@ -12,9 +12,9 @@ create-component = (spec) ->
 
 # Core framework namespace bundling together individual modules
 module.exports =
-  application: require './src/application'
-  routes: require './src/routes'
-  cursor: require './src/cursor'
+  application: require './application'
+  routes: require './routes'
+  cursor: require './cursor'
 
   # move to util?
   create-component: create-component

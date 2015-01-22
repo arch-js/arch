@@ -1,5 +1,5 @@
 require! {
-  '../src/server'
+  '../lib/server'
   fs
   path
 }

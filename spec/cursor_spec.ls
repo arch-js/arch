@@ -1,4 +1,4 @@
-require! '../src/cursor'
+require! '../lib/cursor'
 
 raw-data =
   person:

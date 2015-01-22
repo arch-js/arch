@@ -1,2 +1,1 @@
-require('LiveScript');
-module.exports = require('./src/server.ls');
+module.exports = require('./lib/server');
