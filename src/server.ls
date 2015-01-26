@@ -16,7 +16,9 @@ module.exports = (defaults, options={}) ->
   render = (req, res, next) ->
     return next! unless req.method is 'GET'
     reflex-render app, req.original-url, options.paths.layouts
-    .then -> next!
+    .then ->
+      res._reflex.body = it
+      next!
 
   bundler = (req, res, next) ->
     res.set-header 'Content-Type', 'application/javascript'
@@ -49,7 +51,7 @@ module.exports = (defaults, options={}) ->
   start: ->
     server = express!
     .use init
-    .get '/app.js', bundle
+    .get '/app.js', bundler
     .use render
 
     # Allow user to override the default server routes if they want to
