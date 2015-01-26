@@ -1,5 +1,5 @@
 require! {
-  '../lib/server'
+  '../src/server'
   fs
   path
 }
@@ -8,16 +8,17 @@ describe "server" (_) ->
 
   describe "template assignment" (_) ->
 
-    var support-templates, app
+    var support-templates, app, inst
 
     before-each !->
 
       support-templates := "#{__dirname}/support/fixtures"
       app := render: jasmine.create-spy 'spy' .and.call-fake (url, cbk) -> cbk 'app-state', 'body'
+      inst := server app: app
 
     it "calls the method that renders a route to string" !->
 
-      server.handle-method-get app, 'url', support-templates
+      inst.render app, 'url', support-templates
       # Test that the method that renders a route to a string has been called
       # with a URL an anonymous function.
       expect app.render .to-have-been-called-with 'url', jasmine.any(Function)
@@ -26,7 +27,7 @@ describe "server" (_) ->
 
       var failed
 
-      server.handle-method-get app, 'url', 'non-existent/path'
+      inst.render app, 'url', 'non-existent/path'
       .then (output) !->
         failed := false
       .catch (e) ->
@@ -37,7 +38,7 @@ describe "server" (_) ->
 
     it "interpolates the instantiation partial with the author defined template" (done) !->
 
-      server.handle-method-get app, 'app-state', support-templates
+      inst.render app, 'app-state', support-templates
         .then (template) !->
           fs.read-file path.join(support-templates, 'default-reference.html'), (err, template-reference) !->
             expect template .to-equal template-reference.to-string!

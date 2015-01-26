@@ -1,4 +1,4 @@
-routes = require '../lib/routes'
+routes = require '../src/routes'
 
 describe "routes" (_) ->
   describe "definition" (_) ->

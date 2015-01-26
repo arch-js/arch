@@ -12,7 +12,7 @@ app-component = react.create-factory react.create-class do
     if @state.component
       that context: @state.context, app-state: @state.app-state
     else
-      null
+      react.DOM.span null, "Page not found."
 
 module.exports =
   # define an application instance
@@ -42,7 +42,6 @@ module.exports =
         initial-state = cursor config.get-initial-state!
 
         [route-component, context, route-init] = routes.resolve path, route-config
-        return (cbk initial-state.deref!, "404") unless route-component
 
         root-component = app-component initial-state: initial-state, component: route-component, context: context
 
