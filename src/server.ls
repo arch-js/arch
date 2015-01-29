@@ -48,7 +48,7 @@ module.exports = (defaults, options={}) ->
         req._reflex.bundle = bundle := data
         next!
 
-  start: ->
+  start: (cb) ->
     server = express!
     .use init
     .get '/app.js', bundler
@@ -65,10 +65,15 @@ module.exports = (defaults, options={}) ->
         res.send res._reflex.body
         res.end!
 
-    new bluebird (res, rej) ->
-      listener = server.listen options.port, ->
+    if cb
+      listener = server.listen options.port, (err) ->
         console.log 'App is listening on', listener.address!.port
-        res server: server, listener: listener
+        cb err, { server: server, listener: listener }
+    else
+      new bluebird (res, rej) ->
+        listener = server.listen options.port, ->
+          console.log 'App is listening on', listener.address!.port
+          res server: server, listener: listener
 
   /* test-exports */
   interp: reflex-interp
