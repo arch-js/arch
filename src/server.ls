@@ -52,6 +52,7 @@ module.exports = (defaults, options={}) ->
     server = express!
     .use init
     .get '/app.js', bundler
+    .use '/dist', express.static
     .use render
 
     # Allow user to override the default server routes if they want to
