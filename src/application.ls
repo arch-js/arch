@@ -1,8 +1,11 @@
-require! <[ react ./routes ./cursor ]>
+require! <[ react ./routes ./cursor ./dom ]>
 global import require 'prelude-ls'
 
-app-component = react.create-factory react.create-class do
+{span} = dom
+
+app-component = dom react.create-class do
   display-name: 'reflex-application'
+
   get-initial-state: ->
     component: @props.component
     context: @props.context
@@ -12,7 +15,7 @@ app-component = react.create-factory react.create-class do
     if @state.component
       that context: @state.context, app-state: @state.app-state
     else
-      react.DOM.span null, "Page not found."
+      span "Page not found."
 
 module.exports =
   # define an application instance

@@ -42,7 +42,7 @@
     "liveify": "^2.0.0",
     "page": "https://github.com/charypar/page.js/tarball/server-side-fix",
     "prelude-ls": "^1.1.1",
-    "react": "^0.12.2",
+    "react": "^0.13.0-beta.1",
     "uglifyify": "^3.0.1"
   },
   "devDependencies": {
