@@ -9,7 +9,8 @@ var app = server({
   port: process.env.REFLEX_PORT || 3000,
   paths: {
     app: appPath,
-    layouts: path.join(appPath, 'app', 'layouts')
+    layouts: path.join(appPath, 'app', 'layouts'),
+    public: path.join(appPath, 'dist')
   }
 }).start();
 

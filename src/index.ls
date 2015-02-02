@@ -1,13 +1,6 @@
 require! <[ react path ]>
 require! './dom'
 
-factorify = (klass) ->
-  dom klass
-
-factorify-all = (obj) ->
-  obj |> Obj.map ->
-    dom it
-
 create-component = (spec) ->
   dom react.create-class spec
 
@@ -20,5 +13,3 @@ module.exports =
 
   # move to util?
   create-component: create-component
-  factorify: factorify
-  factorify-all: factorify-all
