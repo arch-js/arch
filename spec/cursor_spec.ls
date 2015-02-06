@@ -1,5 +1,7 @@
 require! '../src/cursor'
 
+{map} = require 'prelude-ls'
+
 raw-data =
   person:
     first_name: "John"

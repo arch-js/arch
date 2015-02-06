@@ -9,7 +9,7 @@ module.exports = (defaults, options={}) ->
 
   render = (req, res) ->
     return next! unless req.method is 'GET'
-    reflex-render app, req.original-url, options.paths.layouts
+    reflex-render app, req.original-url, options.paths
     .then ->
       res.send it
 
@@ -45,11 +45,11 @@ module.exports = (defaults, options={}) ->
 reflex-interp = (template, body) ->
   template.to-string!.replace '{reflex-body}', body
 
-reflex-render = (app, url, layouts) ->
+reflex-render = (app, url, paths) ->
   app.render url, (app-state, body) ->
-    read-file path.join layouts, 'default.html'
+    read-file path.join paths.layouts, 'default.html'
     .then ->
       reflex-interp it,
-        __template body: body, state: app-state
+        __template public: paths.public, body: body, state: app-state
     .error !->
       throw new Error 'Template not found!'
