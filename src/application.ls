@@ -1,5 +1,4 @@
 require! <[ react ./routes ./cursor ./dom ]>
-global import require 'prelude-ls'
 
 {span} = dom
 

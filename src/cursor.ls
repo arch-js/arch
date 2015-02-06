@@ -1,5 +1,5 @@
 Immutable = require 'immutable'
-global import require 'prelude-ls'
+{map, take, reverse, each, join, split, is-type, empty} = require 'prelude-ls'
 
 # wraps array in a cursor
 array-cursor = (root, data, len, path) ->

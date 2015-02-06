@@ -1,6 +1,9 @@
 require! <[ react path ]>
 require! './dom'
 
+unless typeof window is 'undefined'
+  global.React = react
+
 create-component = (spec) ->
   dom react.create-class spec
 

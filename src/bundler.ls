@@ -1,4 +1,4 @@
-require! <[ browserify watchify uglifyify liveify envify/custom path fs ]>
+require! <[ browserify aliasify watchify uglifyify liveify envify/custom path fs ]>
 
 # Full-paths will be enabled when watch is enabled (requirement for watchify).
 # Not a problem in production but it looks super unsafe if you inspect sources in your
@@ -6,11 +6,20 @@ require! <[ browserify watchify uglifyify liveify envify/custom path fs ]>
 
 exports.bundle = (paths, watch, changed) ->
   bundler = browserify do
-    debug: process.env.NODE_ENV isnt 'production'
+    debug: watch
     cache: {}
     package-cache: {}
     full-paths: watch
+  .require require.resolve(paths.app), expose: 'app'
   .transform liveify
+  # Aliasify so that reflex and user app use the same module (otherwise bundle ships multiple Reacts... not good.)
+  .transform global: true, aliasify.configure do
+    aliases:
+      react: './node_modules/react'
+    config-dir: path.resolve '.'
+    applies-to:
+      include-extensions: <[ .ls .js ]>
+  .transform global: true, custom REFLEX_ENV: 'browser'
   .transform do
     compress:
       sequences: true
@@ -23,8 +32,6 @@ exports.bundle = (paths, watch, changed) ->
       drop_console: false
     global: true
     uglifyify
-  .transform custom REFLEX_ENV: 'browser'
-  .require require.resolve(paths.app), expose: 'app'
 
   make-bundle = ->
     console.log 'bundling app.js...'

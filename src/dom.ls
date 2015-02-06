@@ -1,5 +1,5 @@
 require! <[ react ./cursor ]>
-{first, tail, each, keys} = require 'prelude-ls'
+{first, tail, each, keys, is-type} = require 'prelude-ls'
 
 _cursor = cursor []
 is-cursor = -> # TODO: better checking for this...

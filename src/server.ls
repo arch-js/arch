@@ -24,7 +24,7 @@ module.exports = (defaults, options={}) ->
     # TODO: Figure out a way to reload server code correctly, at the moment this hotload module
     # only reloads app.ls
     # Potentially just use a child process.
-    bundler.bundle options.paths, true, ->
+    bundler.bundle options.paths, (process.env.NODE_ENV isnt 'production'), ->
       app := hotload path.relative(__dirname, options.paths.app)
 
     if cb
