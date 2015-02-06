@@ -1,5 +1,7 @@
 require! <[ browserify aliasify watchify uglifyify liveify envify/custom path fs ]>
 
+{map, join} = require 'prelude-ls'
+
 # Full-paths will be enabled when watch is enabled (requirement for watchify).
 # Not a problem in production but it looks super unsafe if you inspect sources in your
 # browser's developer tools
@@ -34,15 +36,15 @@ exports.bundle = (paths, watch, changed) ->
     uglifyify
 
   make-bundle = ->
-    console.log 'bundling app.js...'
     b = bundler.bundle!
     b.on 'error', console.error
     b.pipe fs.create-write-stream path.join(paths.public, 'app.js')
 
   if watch
     bundler = watchify bundler
-    bundler.on 'update', ->
-      changed! if typeof changed isnt 'undefined'
+    bundler.on 'update', (ids) ->
+      console.log "Rebuilding #{path.join(paths.public, 'app.js')}"
+      changed ids if typeof changed isnt 'undefined'
       make-bundle!
 
   make-bundle!
