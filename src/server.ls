@@ -1,4 +1,4 @@
-require! <[ express fs path jade react bluebird ./bundler ]>
+require! <[ express fs path jade react bluebird ./bundler hotload ]>
 
 __template = jade.compile-file (path.join __dirname, 'index.jade')
 read-file = bluebird.promisify fs.read-file
@@ -19,7 +19,13 @@ module.exports = (defaults, options={}) ->
     .get '*', render
 
     # Bundle before server starts accepting requests.
-    bundler.bundle options.paths, true
+    # .bundle takes a boolean of whether to watch and can take a callback which
+    # allows you to hook into any watch changes.
+    # TODO: Figure out a way to reload server code correctly, at the moment this hotload module
+    # only reloads app.ls
+    # Potentially just use a child process.
+    bundler.bundle options.paths, true, ->
+      app := hotload path.relative(__dirname, options.paths.app)
 
     if cb
       listener = server.listen options.port, (err) ->

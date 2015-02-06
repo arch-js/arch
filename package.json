@@ -37,6 +37,7 @@
     "bluebird": "^2.3.11",
     "envify": "^3.2.0",
     "express": "^4.10.6",
+    "hotload": "0.0.5",
     "immutable": "^3.4.1",
     "jade": "^1.8.2",
     "liveify": "^2.0.0",
