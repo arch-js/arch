@@ -1,12 +1,23 @@
-require! <[ express fs path jade react bluebird ./bundler hotload ]>
+require! <[ express fs path jade react bluebird ./bundler LiveScript ]>
 {each, values, filter, find, flatten, map} = require 'prelude-ls'
 
 __template = jade.compile-file (path.join __dirname, 'index.jade')
 read-file = bluebird.promisify fs.read-file
 
-module.exports = (defaults, options={}) ->
-  options = defaults if typeof defaults is "object"
-  app = options.app or require path.relative(__dirname, options.paths.app)
+defaults =
+  port: 3000
+  paths:
+    app:
+      abs: path.resolve '.'
+      rel: path.relative __dirname, path.resolve '.'
+    layouts: 'app/layouts'
+    reflex:
+      abs: path.dirname require.resolve "reflex/package.json"
+      rel: path.relative (path.resolve '.'), (path.dirname require.resolve "reflex/package.json")
+    public: 'dist'
+
+module.exports = (options=defaults) ->
+  app = options.app or require options.paths.app.rel
 
   render = (req, res) ->
     return next! unless req.method is 'GET'
@@ -16,7 +27,7 @@ module.exports = (defaults, options={}) ->
 
   start: (cb) ->
     server = express!
-    .use "/#{options.paths.public}", express.static path.join(options.paths.app, options.paths.public)
+    .use "/#{options.paths.public}", express.static path.join(options.paths.app.abs, options.paths.public)
     .get '*', render
 
     # Bundle before server starts accepting requests.
@@ -31,9 +42,9 @@ module.exports = (defaults, options={}) ->
           done.push id
           ids := parents
 
-      done |> each (-> delete require.cache[it])
+      done |> each -> delete require.cache[it]
 
-      app := require path.relative(__dirname, options.paths.app)
+      app := require options.paths.app.rel
 
     if cb
       listener = server.listen options.port, (err) ->
