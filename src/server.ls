@@ -1,5 +1,5 @@
 require! <[ express fs path jade react bluebird ./bundler LiveScript ]>
-{each, values, filter, find, flatten, map} = require 'prelude-ls'
+{each, values, filter, find, flatten, map, first} = require 'prelude-ls'
 
 __template = jade.compile-file (path.join __dirname, 'index.jade')
 read-file = bluebird.promisify fs.read-file
@@ -22,7 +22,7 @@ module.exports = (options=defaults) ->
 
   render = (req, res) ->
     return next! unless req.method is 'GET'
-    reflex-render app, req.original-url, options.paths
+    reflex-render app, req.original-url, options
     .then ->
       res.send it
 
@@ -37,11 +37,11 @@ module.exports = (options=defaults) ->
 
     bundler.bundle options.paths, options.environment is 'development', (ids) ->
       done = []
-      until ids.length is 0
-        ids |> each (id) ->
-          parents = require.cache |> values |> filter (-> !(it.id in done) and it.children |> find (.id is id)) |> flatten |> map (.id)
-          done.push id
-          ids := parents
+      while id = first ids
+        parents = require.cache |> values |> filter (-> !(it.id in done) and it.children |> find (.id is id)) |> flatten |> map (.id)
+        done.push id
+        parents |> each -> ids.push it
+        ids.splice 0, 1
 
       done |> each -> delete require.cache[it]
 
@@ -65,12 +65,11 @@ module.exports = (options=defaults) ->
 reflex-interp = (template, body) ->
   template.to-string!.replace '{reflex-body}', body
 
-reflex-render = (app, url, paths) ->
+reflex-render = (app, url, options) ->
   app.render url, (app-state, body) ->
-    read-file path.join paths.layouts, 'default.html'
+    read-file path.join options.paths.layouts, 'default.html'
     .then ->
-      bundle-path = if options.environemnt is 'development' then "http://localhost:3001/app.js" else "/#{paths.public}/app.js"
       reflex-interp it,
-        __template public: paths.public, bundle: bundle-path, body: body, state: app-state
+        __template public: options.paths.public, bundle: "/#{options.paths.public}/app.js", body: body, state: app-state
     .error !->
       throw new Error 'Template not found!'
