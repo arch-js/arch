@@ -5,6 +5,7 @@ __template = jade.compile-file (path.join __dirname, 'index.jade')
 read-file = bluebird.promisify fs.read-file
 
 defaults =
+  environment: process.env.NODE_ENV or 'development'
   port: 3000
   paths:
     app:
@@ -34,7 +35,7 @@ module.exports = (options=defaults) ->
     # .bundle takes a boolean of whether to watch and can take a callback which
     # allows you to hook into any watch changes.
 
-    bundler.bundle options.paths, (process.env.NODE_ENV isnt 'production'), (ids) ->
+    bundler.bundle options.paths, options.environment is 'development', (ids) ->
       done = []
       until ids.length is 0
         ids |> each (id) ->
@@ -68,7 +69,8 @@ reflex-render = (app, url, paths) ->
   app.render url, (app-state, body) ->
     read-file path.join paths.layouts, 'default.html'
     .then ->
+      bundle-path = if options.environemnt is 'development' then "http://localhost:3001/app.js" else "/#{paths.public}/app.js"
       reflex-interp it,
-        __template public: paths.public, body: body, state: app-state
+        __template public: paths.public, bundle: bundle-path, body: body, state: app-state
     .error !->
       throw new Error 'Template not found!'
