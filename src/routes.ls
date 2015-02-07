@@ -1,4 +1,5 @@
 require! <[ page ]>
+{split-at, drop, split, map, pairs-to-obj, each, find} = require 'prelude-ls'
 
 # Split URL into path, query string and hash
 # => [path, query, hash]

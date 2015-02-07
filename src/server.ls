@@ -1,45 +1,75 @@
-require! <[ express fs path jade ]>
+require! <[ express fs path jade react bluebird ./bundler LiveScript ]>
+{each, values, filter, find, flatten, map, first} = require 'prelude-ls'
 
-require! {
-  bluebird: Promise
-}
+__template = jade.compile-file (path.join __dirname, 'index.jade')
+read-file = bluebird.promisify fs.read-file
 
-read-file = Promise.promisify fs.read-file
+defaults =
+  environment: process.env.NODE_ENV or 'development'
+  port: 3000
+  paths:
+    app:
+      abs: path.resolve '.'
+      rel: path.relative __dirname, path.resolve '.'
+    layouts: 'app/layouts'
+    reflex:
+      abs: path.dirname require.resolve "reflex/package.json"
+      rel: path.relative (path.resolve '.'), (path.dirname require.resolve "reflex/package.json")
+    public: 'dist'
 
-interpolate-template = (template, instantiation) ->
+module.exports = (options=defaults) ->
+  app = options.app or require options.paths.app.rel
 
-  template .to-string! .replace '{reflex-body}', instantiation
+  render = (req, res) ->
+    return next! unless req.method is 'GET'
+    reflex-render app, req.original-url, options
+    .then ->
+      res.send it
 
-handle-method-get = (app, url, layouts-path) ->
+  start: (cb) ->
+    server = express!
+    .use "/#{options.paths.public}", express.static path.join(options.paths.app.abs, options.paths.public)
+    .get '*', render
 
+    # Bundle before server starts accepting requests.
+    # .bundle takes a boolean of whether to watch and can take a callback which
+    # allows you to hook into any watch changes.
+
+    bundler.bundle options.paths, options.environment is 'development', (ids) ->
+      done = []
+      while id = first ids
+        parents = require.cache |> values |> filter (-> !(it.id in done) and it.children |> find (.id is id)) |> flatten |> map (.id)
+        done.push id
+        parents |> each -> ids.push it
+        ids.splice 0, 1
+
+      done |> each -> delete require.cache[it]
+
+      app := require options.paths.app.rel
+
+    if cb
+      listener = server.listen options.port, (err) ->
+        console.log 'App is listening on', listener.address!.port
+        cb err, { server: server, listener: listener }
+    else
+      new bluebird (res, rej) ->
+        listener = server.listen options.port, ->
+          console.log 'App is listening on', listener.address!.port
+          res server: server, listener: listener
+
+  /* test-exports */
+  interp: reflex-interp
+  render: reflex-render
+  /* end-test-exports */
+
+reflex-interp = (template, body) ->
+  template.to-string!.replace '{reflex-body}', body
+
+reflex-render = (app, url, options) ->
   app.render url, (app-state, body) ->
-
-    read-file path.join(layouts-path, 'default.html')
-    .then (template) ->
-      instantiation = jade .render-file "#{__dirname}/index.jade", body: body, state: app-state
-      interpolate-template template, instantiation
+    read-file path.join options.paths.layouts, 'default.html'
+    .then ->
+      reflex-interp it,
+        __template public: options.paths.public, bundle: "/#{options.paths.public}/app.js", body: body, state: app-state
     .error !->
-      throw new Error 'Template not found'
-
-run = (app, port, asset-path, layouts-path) ->
-
-  console.log "Starting Reflex server..."
-
-  server = express!
-
-  console.log "Serving static assets from", asset-path, "on /dist"
-  server.use '/dist', express.static asset-path
-
-  server.get '*', (request, response) ->
-
-    console.log "GET ", request.original-url
-
-    handle-method-get app, request.original-url, layouts-path
-    .then (template) !-> response.send template
-
-  server.listen port
-  console.log "Server running on port", port
-
-module.exports =
-  run: run
-  handle-method-get: handle-method-get
+      throw new Error 'Template not found!'

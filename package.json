@@ -1,6 +1,6 @@
 {
   "name": "reflex",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Web application framework for React",
   "homepage": "https://github.com/redbadger/reflex",
   "repository": {
@@ -22,24 +22,34 @@
   "bin": {
     "reflex-server": "bin/server.js"
   },
-  "main": "index.js",
+  "main": "./lib/index.js",
   "files": [
-    "src/server.js"
+    "package.json",
+    "lib/"
   ],
   "scripts": {
+    "compile": "./node_modules/.bin/gulp",
+    "prepublish": "npm run-script compile",
+    "pretest": "npm run-script compile",
     "test": "./node_modules/jasmine/bin/jasmine.js"
   },
   "dependencies": {
     "bluebird": "^2.3.11",
-    "LiveScript": "^1.3.1",
+    "envify-loader": "^0.1.0",
     "express": "^4.10.6",
     "immutable": "^3.4.1",
     "jade": "^1.8.2",
+    "livescript-loader": "^0.1.3",
     "page": "https://github.com/charypar/page.js/tarball/server-side-fix",
     "prelude-ls": "^1.1.1",
-    "react": "^0.12.2"
+    "react": "^0.13.0-beta.1",
+    "webpack": "^1.5.3"
   },
   "devDependencies": {
-    "jasmine": "^2.1.1"
+    "gulp": "^3.8.10",
+    "gulp-livescript": "^2.3.0",
+    "gulp-strip-code": "^0.1.2",
+    "jasmine": "^2.1.1",
+    "LiveScript": "^1.3.1"
   }
 }
