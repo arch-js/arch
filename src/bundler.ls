@@ -1,4 +1,4 @@
-require! <[ webpack path ]>
+require! <[ webpack path webpack-dev-server ]>
 
 {Obj, keys} = require 'prelude-ls'
 
@@ -7,7 +7,11 @@ exports.bundle = (paths, watch, changed) ->
 
   # Basic configuration
   config =
-    entry: './' + path.basename entry
+    entry:
+      * 'webpack-dev-server/client?http://localhost:3001'
+      * 'webpack/hot/dev-server'
+      * './' + path.basename entry
+
     context: path.dirname entry
 
     output:
@@ -32,83 +36,54 @@ exports.bundle = (paths, watch, changed) ->
           loader: 'livescript-loader'
       ]
       loaders: [
-        * test: /.*/
+        * test: /\.(?:ls|js|jsx)$/
           loader: 'envify-loader'
       ]
+      post-loaders: []
 
   # Optimise for production.
   if process.env.NODE_ENV is 'production'
     config.plugins.push new webpack.optimize.DedupePlugin!
     config.plugins.push new webpack.optimize.UglifyJsPlugin!
 
-  # Run the bundle
+  # Enable HMR if watching.
+  if watch
+    config.output.public-path = 'http://localhost:3001/'
+    config.module.loaders.push do
+      test: /\.(?:js|jsx|ls)$/
+      loader: 'react-hot'
+      exclude: /node_modules/
+    config.plugins.push new webpack.HotModuleReplacementPlugin!
+    config.plugins.push new webpack.NoErrorsPlugin!
+
+  # Initialise the bundle
   bundler = webpack config
 
-  # Bundle or watch.
-  unless watch
-    bundler.run (err, stats) ->
-      console.log err if err
-      console.log 'Bundled app.js'
+  # Just bundle or watch + serve via webpack-dev-server
+  if watch
+
+    # Add a callback to server, passing changed files, to reload app code server-side.
+    last-build = null
+    bundler.plugin 'done', (stats) ->
+      diff = stats.compilation.file-timestamps |> Obj.filter (> last-build) |> keys
+      changed diff
+      last-build := stats.end-time
+
+    bundler.plugin 'failed', (err) ->
+      console.log err
+
+    # Start the webpack dev server
+    server = new webpack-dev-server bundler, do
+      filename: 'app.js'
+      content-base: path.join paths.app.abs, paths.public
+      hot: true # Enable hot loading
+      quiet: true
+      no-info: true
+      watch-delay: 200
+
+    server.listen 3001, 'localhost'
+
   else
-    end = null
-    bundler.watch 200, (err, stats) ->
-      if end
-        diff = stats.compilation.file-timestamps |> Obj.filter (-> it > end) |> keys
-        if diff.length > 0
-          changed diff
-          console.log 'Rebundled:'
-          console.log diff
-      else
-        console.log 'Bundled app.js'
-      end := stats.end-time
-
-# require! <[ browserify aliasify watchify uglifyify liveify envify/custom path fs ]>
-
-# {map, join} = require 'prelude-ls'
-
-# # Full-paths will be enabled when watch is enabled (requirement for watchify).
-# # Not a problem in production but it looks super unsafe if you inspect sources in your
-# # browser's developer tools
-
-# exports.bundle = (paths, watch, changed) ->
-#   bundler = browserify do
-#     debug: watch
-#     cache: {}
-#     package-cache: {}
-#     full-paths: watch
-#   .require require.resolve(paths.app), expose: 'app'
-#   .transform liveify
-#   # Aliasify so that reflex and user app use the same module (otherwise bundle ships multiple Reacts... not good.)
-#   .transform global: true, aliasify.configure do
-#     aliases:
-#       react: './node_modules/react'
-#     config-dir: path.resolve '.'
-#     applies-to:
-#       include-extensions: <[ .ls .js ]>
-#   .transform global: true, custom REFLEX_ENV: 'browser'
-#   .transform do
-#     compress:
-#       sequences: true
-#       dead_code: true
-#       conditionals: true
-#       booleans: true
-#       unused: true
-#       if_return: true
-#       join_vars: true
-#       drop_console: false
-#     global: true
-#     uglifyify
-
-#   make-bundle = ->
-#     b = bundler.bundle!
-#     b.on 'error', console.error
-#     b.pipe fs.create-write-stream path.join(paths.public, 'app.js')
-
-#   if watch
-#     bundler = watchify bundler
-#     bundler.on 'update', (ids) ->
-#       console.log "Rebuilding #{path.join(paths.public, 'app.js')}"
-#       changed ids if typeof changed isnt 'undefined'
-#       make-bundle!
-
-#   make-bundle!
+    # Run once if watch is false
+    bundler.run (err, stats) ->
+      console.log 'Bundled app.js'

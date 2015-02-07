@@ -43,7 +43,9 @@
     "page": "https://github.com/charypar/page.js/tarball/server-side-fix",
     "prelude-ls": "^1.1.1",
     "react": "^0.13.0-beta.1",
-    "webpack": "^1.5.3"
+    "react-hot-loader": "^1.1.4",
+    "webpack": "^1.5.3",
+    "webpack-dev-server": "^1.7.0"
   },
   "devDependencies": {
     "gulp": "^3.8.10",
