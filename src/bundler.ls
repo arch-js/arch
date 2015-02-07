@@ -1,4 +1,4 @@
-require! <[ webpack path webpack-dev-server ]>
+require! <[ webpack path ]>
 
 {Obj, keys} = require 'prelude-ls'
 
