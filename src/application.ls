@@ -2,7 +2,7 @@ require! <[ react ./routes ./cursor ./dom ]>
 
 {span} = dom
 
-app-component = dom react.create-class do
+app-component = react.create-factory react.create-class do
   display-name: 'reflex-application'
 
   get-initial-state: ->
@@ -12,7 +12,7 @@ app-component = dom react.create-class do
 
   render: ->
     if @state.component
-      that context: @state.context, app-state: @state.app-state
+      react.create-element that, context: @state.context, app-state: @state.app-state
     else
       span "Page not found."
 
