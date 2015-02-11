@@ -7,10 +7,7 @@ exports.bundle = (paths, watch, changed) ->
 
   # Basic configuration
   config =
-    entry:
-      * 'webpack-dev-server/client?http://localhost:3001'
-      * 'webpack/hot/dev-server'
-      * './' + path.basename entry
+    entry: [ './' + path.basename entry ]
 
     context: path.dirname entry
 
@@ -48,6 +45,8 @@ exports.bundle = (paths, watch, changed) ->
 
   # Enable HMR if watching.
   if watch
+    config.entry.unshift 'webpack/hot/dev-server'
+    config.entry.unshift 'webpack-dev-server/client?http://localhost:3001'
     config.output.public-path = 'http://localhost:3001/'
     config.module.loaders.push do
       test: /\.(?:js|jsx|ls)$/
