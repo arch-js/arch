@@ -13,6 +13,7 @@ module.exports =
   routes: require './routes'
   cursor: require './cursor'
   dom: dom
+  pure-render-mixin: require './mixins/pure-render'
 
   # move to util?
   create-component: create-component

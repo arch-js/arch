@@ -1,55 +1,68 @@
-require! <[ react ./routes ./cursor ./dom ]>
+require! <[ react ./routes ./dom ./cursor ]>
 
 {span} = dom
-
-app-component = react.create-factory react.create-class do
-  display-name: 'reflex-application'
-
-  get-initial-state: ->
-    component: @props.component
-    context: @props.context
-    app-state: @props.initial-state
-
-  render: ->
-    if @state.component
-      react.create-element that, context: @state.context, app-state: @state.app-state
-    else
-      span "Page not found."
 
 module.exports =
   # define an application instance
   create: (config) ->
     do
-      # start the application
-      start: ->
-        route-config = config.routes!
-        root-element = document.get-element-by-id "application"
-        initial-state = JSON.parse root-element.get-attribute 'data-reflex-app-state'
+      # Allow definition of a different mount point.
+      root: if process.env.REFLEX_ENV is 'browser' => (config.root or document.get-element-by-id 'application' or document.body) else => void
 
-        path = (location.pathname + location.search + location.hash)
+      type: react.create-class do
+        display-name: 'reflex-application-root'
 
-        [route-component, context, route-init] = routes.resolve path, route-config
-        app-state = cursor (initial-state or config.get-initial-state!)
-        config.start app-state, (->)
+        render: ->
+          if @props.component.deref! then
+            react.create-element that, @props{state, context}
+          else
+            span 'Page not found'
 
-        root-component = app-component initial-state: app-state, component: route-component, context: context
-        root = react.render root-component, root-element
+      # The root component element
+      element: -> react.create-element @type, do
+        component: @state.get 'component'
+        context: @state.get 'context'
+        state: @state.get 'state'
 
-        app-state.on-change -> root.set-state app-state: app-state
-        routes.start config.routes!, root, app-state
+      # Mount the application to the root node.
+      render: -> react.render @element!, @root
 
-      # render a particular route to string
-      render: (path, cbk) ->
-        route-config = config.routes!
-        initial-state = cursor config.get-initial-state!
+      # Render the application to markup.
+      to-string: -> react.render-to-string @element!
 
-        [route-component, context, route-init] = routes.resolve path, route-config
+      state: null
 
-        root-component = app-component initial-state: initial-state, component: route-component, context: context
+      _routes: config.routes!
 
-        # FIXME switch to promises and run both in paralel
-        config.start initial-state, ->
-          return (cbk initial-state.deref!, react.render-to-string root-component) unless route-init
+      # Initialise the application
+      start: (url=routes.path!) ->
+        # TODO: Abstract this route configuration into the router and expose some route mutation methods.
 
-          route-init initial-state, context, ->
-            cbk initial-state.deref!, react.render-to-string root-component
+        # Load initial state depending on environment.
+        unless process.env.REFLEX_ENV is 'browser' and state = JSON.parse @root.get-attribute 'data-reflex-app-state'
+          state = config.get-initial-state!
+
+        # Route to current url
+        state = config.start state if config.start
+        [component, context, init] = routes.resolve url, @_routes
+        state = init state if init
+
+        # Apply initial state and begin routing
+        @state = cursor {state, component, context}
+
+        # Mount to DOM if we're clientside
+        if process.env.REFLEX_ENV is 'browser'
+          routes.start @_routes, (component, context, init) ~>
+            @state.update (data) ->
+              data.state = init data.state if init
+              data import {component, context}
+
+          # Add initial on-change handler
+          @state.on-change ~> @render!
+
+          # And finally mount to dom node.
+          @render!
+
+        # Otherwise return state and the rendered to string for server-side rendering
+        else
+          return [@state.get 'state' .deref!, @to-string!]

@@ -44,6 +44,7 @@ context-from-url = (url, params) ->
   params: ({} import query) import params
 
 module.exports =
+  path: -> (location.pathname + location.search + location.hash)
   define: (...configs) ->
     configs
 
@@ -54,16 +55,11 @@ module.exports =
     component: component-class
     init: if 'function' is typeof init then init
 
-  start: (configs, root-component, app-state) ->
+  start: (configs, done) ->
     configs |> each (config) ->
       page.callbacks.push config.route.middleware (ctx) ->
         context = context-from-url(ctx.canonical-path, ctx.params)
-
-        root-component.set-state component: config.component, context: context
-        window.scroll-to 0, 0
-
-        # call the route callback
-        config.init(app-state, context, ->) if config.init
+        done config.component, context, config.init
 
     # only start client-side routing if pushState is available
     page.start! if (typeof window.history.replace-state isnt 'undefined')

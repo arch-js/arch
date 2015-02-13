@@ -5,6 +5,10 @@ require! <[ webpack path webpack-dev-server ]>
 exports.bundle = (paths, watch, changed) ->
   entry = require.resolve paths.app.abs
 
+  browser-env = ^^process.env
+  browser-env.REFLEX_ENV = 'browser'
+  browser-env = browser-env |> Obj.map JSON.stringify
+
   # Basic configuration
   config =
     entry: [ './' + path.basename entry ]
@@ -20,22 +24,21 @@ exports.bundle = (paths, watch, changed) ->
     resolve:
       root: path.join paths.app.abs, 'node_modules'
       fallback: path.join paths.reflex.abs, 'node_modules'
+      extensions: [ '', '.ls', '.js', '.jsx' ]
 
     resolve-loader:
       root: path.join paths.reflex.abs, 'node_modules'
       fallback: path.join paths.app.abs, 'node_modules'
 
-    plugins: []
+
+    plugins: [ new webpack.DefinePlugin 'process.env': browser-env ]
 
     module:
       pre-loaders: [
         * test: /\.ls$/
           loader: 'livescript-loader'
       ]
-      loaders: [
-        * test: /\.(?:ls|js|jsx)$/
-          loader: 'envify-loader'
-      ]
+      loaders: []
       post-loaders: []
 
   # Optimise for production.
@@ -68,7 +71,7 @@ exports.bundle = (paths, watch, changed) ->
       changed diff
       last-build := stats.end-time
 
-    bundler.plugin 'failed', (err) ->
+    bundler.plugin 'error', (err) ->
       console.log err
 
     # Start the webpack dev server

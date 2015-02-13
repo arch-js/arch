@@ -21,6 +21,7 @@ module.exports = (options=defaults) ->
   app = options.app or require options.paths.app.rel
 
   render = (req, res) ->
+    console.log req.original-url
     return next! unless req.method is 'GET'
     reflex-render app, req.original-url, options
     .then ->
@@ -66,11 +67,12 @@ reflex-interp = (template, body) ->
   template.to-string!.replace '{reflex-body}', body
 
 reflex-render = (app, url, options) ->
-  app.render url, (app-state, body) ->
-    read-file path.join options.paths.layouts, 'default.html'
-    .then ->
-      bundle-path = if options.environment is 'development' then "http://localhost:3001/app.js" else "/#{options.paths.public}/app.js"
-      reflex-interp it,
-        __template public: options.paths.public, bundle: bundle-path, body: body, state: app-state
-    .error !->
-      throw new Error 'Template not found!'
+  $ = app.start url
+  [state, body] = $
+  read-file path.join options.paths.layouts, 'default.html'
+  .then ->
+    bundle-path = if options.environment is 'development' then "http://localhost:3001/app.js" else "/#{options.paths.public}/app.js"
+    reflex-interp it,
+      __template public: options.paths.public, bundle: bundle-path, body: body, state: state
+  .error !->
+    throw new Error 'Template not found!'
