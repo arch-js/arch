@@ -13,8 +13,8 @@ module.exports =
         display-name: 'reflex-application-root'
 
         render: ->
-          if @props.component.deref! then
-            react.create-element that, @props{state, context}
+          if @props.component then
+            react.create-element that.deref!, @props{state, context}
           else
             span 'Page not found'
 
@@ -42,25 +42,29 @@ module.exports =
         unless process.env.REFLEX_ENV is 'browser' and state = JSON.parse @root.get-attribute 'data-reflex-app-state'
           state = config.get-initial-state!
 
-        # Route to current url
+        # App initialiser
         state = config.start state if config.start
+
+        # Resolve the initial route and run its initialiser
         [component, context, init] = routes.resolve url, @_routes
         state = init state if init
 
-        # Apply initial state and begin routing
+        # Lock down state and create a cursor to it.
         @state = cursor {state, component, context}
 
         # Mount to DOM if we're clientside
         if process.env.REFLEX_ENV is 'browser'
           routes.start @_routes, (component, context, init) ~>
+            # Update the state to reflext the new route
             @state.update (data) ->
+              # Run the route initialiser if it exists
               data.state = init data.state if init
               data import {component, context}
 
           # Add initial on-change handler
           @state.on-change ~> @render!
 
-          # And finally mount to dom node.
+          # And finally, run initial clientside render.
           @render!
 
         # Otherwise return state and the rendered to string for server-side rendering

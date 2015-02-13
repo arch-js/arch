@@ -29,6 +29,7 @@ module.exports = (options=defaults) ->
 
   start: (cb) ->
     server = express!
+    .get '/favicon.ico', (req, res) -> res.redirect "/#{options.paths.public}/favicon.ico"
     .use "/#{options.paths.public}", express.static path.join(options.paths.app.abs, options.paths.public)
     .get '*', render
 
