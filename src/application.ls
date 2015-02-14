@@ -11,7 +11,11 @@ module.exports =
 
       type: react.create-class do
         display-name: 'reflex-application-root'
-
+        
+        component-did-update: (old) ->
+          console.log @props.state.deref!
+          console.log old.state.deref!
+          
         render: ->
           if @props.component then
             react.create-element that.deref!, @props{state, context}
@@ -62,8 +66,10 @@ module.exports =
               data import {component, context}
 
           # Add initial on-change handler
-          @state.on-change ~> @render!
-
+          @state.on-change (new-cursor) ~>
+            @state = new-cursor
+            @render!
+          
           # And finally, run initial clientside render.
           @render!
 

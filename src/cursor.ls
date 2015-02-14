@@ -1,5 +1,5 @@
 Immutable = require 'immutable'
-{map, take, reverse, each, join, split, is-type, empty} = require 'prelude-ls'
+{map, take, reverse, each, join, split, is-type, empty, obj-to-pairs} = require 'prelude-ls'
 
 # wraps array in a cursor
 array-cursor = (root, data, len, path) ->
@@ -10,57 +10,44 @@ array-cursor = (root, data, len, path) ->
   array._root = root or this
   array._data = if data then Immutable.fromJS(data) else null
   array._listeners = {}
-  array._updates = []
 
   # Support all the cursor API
-  array{get, deref, raw, update, _swap, on-change} = Cursor.prototype
+  array{get, deref, raw, update, on-change, eq} = Cursor.prototype
 
   return array
 
 object-cursor = (root, data, path) ->
   new Cursor root, data, path
 
-notify-listeners = (listeners, path, new-data) !->
-  paths = [0 to path.length]
-  |> map (-> path |> take it)
-  |> reverse
-  |> each (path) ->
-    key = path |> join '.'
+notify-changes = (from, to) ->
+  # Diffnotify
+  from._root._listeners
+  |> obj-to-pairs
+  |> each ([path, listeners]) ->
+    if n = (if path is "" then to._root else to.get path)
+      if !n.eq (if path is "" then from._root else from._root.get path)
+        listeners |> each (-> it n)
 
-    return unless is-type 'Array', listeners[key]
-
-    listeners[key] |> each ->
-      payload = new-data.get-in path
-      payload .= toJS! if payload.toJS
-
-      it(payload)
-
-flush-updates = (updates) ->
-  while updates.length > 0
-    [cursor, update] = updates[0]
-    perform-update cursor, update
-
-    updates.shift!
-
-perform-update = (cursor, update) ->
+perform-update = (cursor, update, notify=true) ->
   old-val = cursor.raw!
 
   new-val = update cursor.deref!
   new-val = Immutable.fromJS(new-val) if is-type 'Array', new-val or is-type 'Object', new-val
 
-  return if old-val is new-val
-  return if Immutable.is(old-val, new-val)
-
-  new-data = if empty cursor._path
-    new-val
+  return cursor if old-val is new-val or Immutable.is(old-val, new-val)
+  
+  if empty cursor._path
+    new-root = make-cursor new-val
+    node = new-root
   else
-    cursor._root._data.set-in cursor._path, new-val
+    new-root = make-cursor cursor._root._data.set-in cursor._path, new-val
+    node = new-root.get (join '.', cursor._path)
+    
+  if notify
+    notify-changes cursor, new-root 
+    new-root._listeners = cursor._root._listeners
 
-  # Swap
-  cursor._root._swap new-data
-
-  # Notify about the change
-  notify-listeners cursor._root._listeners, cursor._path, new-data
+  node
 
 Cursor = (root, data, path) ->
   @_path = path
@@ -74,7 +61,7 @@ Cursor = (root, data, path) ->
 Cursor.prototype.get = (path) ->
   path = @_path ++ (split '.', path)
   val = @_root._data.get-in path
-
+  
   return null unless val
 
   # if the resulting object is a list, return array-cursor
@@ -92,27 +79,23 @@ Cursor.prototype.raw = ->
   @_root._data.get-in @_path
 
 Cursor.prototype.update = (cbk) ->
-  updates = @_root._updates
-  updates.push [this, cbk]
-  return unless updates.length < 2
+  perform-update this, cbk
 
-  while updates.length > 0
-    [cursor, update] = updates[0]
-    perform-update cursor, update
-
-    updates.shift!
-
-Cursor.prototype._swap = (new-data) ->
-  throw "_swap can only be called on the root cursor" unless this is @_root
-
-  @_data = new-data
+Cursor.prototype.update-until = (condition, cbk) ->
+  x = this
+  until condition x
+    x := perform-update x, cbk, false
+  @update -> x.deref!
 
 Cursor.prototype.on-change = (cbk) ->
   key = join '.', @_path
   @_root._listeners[key] ||= []
   @_root._listeners[key].push cbk
 
-module.exports = (data) ->
+Cursor.prototype.eq = (cur) ->
+  @raw! === cur.raw!
+
+module.exports = make-cursor = (data) ->
   if is-type 'Array', data
     array-cursor null, data, data.length, []
   else

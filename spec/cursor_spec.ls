@@ -63,34 +63,26 @@ describe "cursor" (_) ->
 
   describe "stateful updates" (_) ->
     it "updates with a callback" ->
-      data = cursor raw-data
-
       name = data.get \person.first_name
-      name.update -> "Ringo"
-
-      expect data.deref!.person.first_name .toBe "Ringo"
+      name = name.update -> "Ringo"
+      
+      expect name.deref! .to-be "Ringo"
 
     it "allows atomic updates" ->
-      data = cursor raw-data
-
       age = data.get \person.age
-      age.update -> it + 1
+      age = age.update -> it + 1
 
-      expect data.deref!.person.age .toBe 36
+      expect age.deref! .toBe 36
 
     it "allows atomic updates even for composite values" ->
-      data = cursor raw-data
-
       person = data.get \person
-      person.update -> it import first_name: "Paul"
-
-      expect data.deref!.person.first_name .toBe "Paul"
+      person = person.update -> it import first_name: "Paul"
+      expect person.deref!.first_name .to-be "Paul"
 
     it "allows for larger cumulative updates" ->
-      data = cursor raw-data
       pets = data.get \person.pets
 
-      pets.update ->
+      pets = pets.update ->
         [
           * animal: "cat"
             name: "Professor Catus"
@@ -98,24 +90,21 @@ describe "cursor" (_) ->
             name: "Baron Woofson"
         ]
 
-      expect (pets.get \0.name .deref!) .toBe "Professor Catus"
-      expect (pets.get \1.name .deref!) .toBe "Baron Woofson"
+      expect (pets._root.get \person.pets.0.name .deref!) .to-be "Professor Catus"
+      expect (pets._root.get \person.pets.1.name .deref!) .to-be "Baron Woofson"
 
   describe "observation" (_) ->
     it "notifies on change to a path" ->
-      data = cursor raw-data
       name = data.get \person.first_name
 
       observer = jasmine.create-spy "observer"
-      name.on-change observer
+      name.on-change -> observer it.deref!
 
       name.update -> "George"
 
       expect observer .to-have-been-called-with "George"
 
-    it "notifies on all parents with the respective value" ->
-      data = cursor raw-data
-
+    it "notifies on all parents with the respective cursor" ->
       person = data.get \person
       name = person.get \first_name
 
@@ -125,29 +114,26 @@ describe "cursor" (_) ->
       name-observer = jasmine.create-spy "name-observer"
       name.on-change name-observer
 
-      name.update -> "George"
+      name = name.update -> "George"
 
-      expect name-observer .to-have-been-called-with "George"
+      expect name-observer .to-have-been-called-with name
 
       payload = person-observer.calls.args-for 0 .0
-      expect payload.first_name .toBe "George"
+      expect payload.deref!.first_name .to-be "George"
 
     it "notifies on all parents even with a list in the path" ->
-      data = cursor raw-data
-
       pets = data.get \person.pets
       cat-name = pets.get \0.name
 
       pets-observer = jasmine.create-spy "pets-observer"
       pets.on-change pets-observer
 
-      cat-name.update -> "Professor Catus"
+      cat-name = cat-name.update -> "Professor Catus"
 
       payload = pets-observer.calls.args-for 0 .0
-      expect payload.0.name .toBe 'Professor Catus'
+      expect payload.0.deref!.name .to-be 'Professor Catus'
 
     it "does not update when simple value is the same after update" ->
-      data = cursor raw-data
       name = data.get \person.first_name
       raw-name-a = name.raw!
 
@@ -161,7 +147,6 @@ describe "cursor" (_) ->
       expect observer .not.to-have-been-called!
 
     it "does not update when composite value is the same after update" ->
-      data = cursor raw-data
       tom = data.get \person.pets.0
       raw-tom-a = tom.raw!
 
@@ -174,20 +159,15 @@ describe "cursor" (_) ->
       expect raw-tom-b .to-be .raw-tom-a
       expect observer .not.to-have-been-called!
 
-    it "serialises recursive updates" ->
-      data = cursor raw-data
+    it "supports recursive updates" ->
       age = data.get \person.age
-
-      trace = []
-
-      age.on-change ->
-        return if it > 40
-
-        trace.push it
-        age.update -> it + 1
-        trace.push it
-
-      age.update -> it + 1
-
-      expect trace .to-equal [36, 36, 37, 37, 38, 38, 39, 39, 40, 40]
+      
+      observer = jasmine.create-spy "observer"
+      age.on-change observer
+      
+      age = age.update-until (.deref! is 400), (+ 1)
+      
+      expect observer.calls.count! .to-be 1
+      
+      expect age.deref! .to-be 400
 
