@@ -65,7 +65,7 @@ module.exports =
           @state.on-change (new-cursor) ~>
             @state = new-cursor
             @render!
-          
+
           # And finally, run initial clientside render.
           @render!
 
