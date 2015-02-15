@@ -20,16 +20,29 @@ defaults =
 module.exports = (options=defaults) ->
   app = options.app or require options.paths.app.rel
 
-  render = (req, res) ->
-    return next! unless req.method is 'GET'
-    reflex-render app, req.original-url, options
+  get = (req, res) ->
+    console.log "GET ", req.original-url
+    reflex-get app, req.original-url, options
     .then ->
       res.send it
+
+  post = (req, resp) ->
+    post-data = req.body
+    console.log "POST ", req.original-url, post-data
+
+    reflex-post app, request.original-url, post-data, options
+    .then ([status, headers, body]) !->
+      console.log "#status", headers
+      response
+        .status status
+        .set headers
+        .send body
 
   start: (cb) ->
     server = express!
     .use "/#{options.paths.public}", express.static path.join(options.paths.app.abs, options.paths.public)
-    .get '*', render
+    .get '*', get
+    .post '*', post
 
     # Bundle before server starts accepting requests.
     # .bundle takes a boolean of whether to watch and can take a callback which
@@ -58,18 +71,34 @@ module.exports = (options=defaults) ->
           res server: server, listener: listener
 
   /* test-exports */
-  interp: reflex-interp
+  get: reflex-get
+  post: reflex-post
   render: reflex-render
+  interp: reflex-interp
   /* end-test-exports */
+
+reflex-get = (app, url, options) ->
+  app.render url, (app-state, body) ->
+    reflex-render path.join(options.paths.layouts, 'default.html'), body, app-state, options
+
+reflex-post = (app, url, post-data, options) ->
+  app.process-form url, post-data, (app-state, body, location) ->
+    if body
+      reflex-render path.join(options.paths.layouts, 'default.html'), body, app-state, options
+      .then ->
+        [200, {}, it]
+    else
+      new Promise (res, rej) ->
+        # FIXME build a full URL for location to comply with HTTP
+        res [302, 'Location': location, ""];
 
 reflex-interp = (template, body) ->
   template.to-string!.replace '{reflex-body}', body
 
-reflex-render = (app, url, options) ->
-  app.render url, (app-state, body) ->
-    read-file path.join options.paths.layouts, 'default.html'
-    .then ->
-      reflex-interp it,
-        __template public: options.paths.public, bundle: "/#{options.paths.public}/app.js", body: body, state: app-state
-    .error !->
-      throw new Error 'Template not found!'
+reflex-render = (path, body, app-state, options) ->
+  read-file path
+  .then (template) ->
+    reflex-interp template,
+      __template public: options.paths.public, bundle: "/#{options.paths.public}/app.js", body: body, state: app-state
+  .error !->
+    throw new Error 'Template not found'

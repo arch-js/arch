@@ -1,8 +1,11 @@
-require! <[ react ./routes ./cursor ./dom ]>
+react = require 'react/addons'
+require! <[ ./routes ./cursor ./dom ]>
+global import require 'prelude-ls'
+
+test-utils = react.addons.TestUtils
 
 {span} = dom
-
-app-component = dom react.create-class do
+app-component = react.create-factory react.create-class do
   display-name: 'reflex-application'
 
   get-initial-state: ->
@@ -15,6 +18,20 @@ app-component = dom react.create-class do
       that context: @state.context, app-state: @state.app-state
     else
       span "Page not found."
+
+# The core of isomorphic form processing.
+# TODO probably extract to a separate module
+process-form = (root-component, initial-state, post-data, done) ->
+  state = initial-state.deref!
+  body = "Processing form for post-data: #{JSON.stringify(post-data)} <br/>Resulting app-state: #{JSON.stringify(state)}"
+
+  results = test-utils.findAllInRenderedTree root-component, ->
+    console.log "Test", it.props.class-name
+    true
+
+  console.log "find all results", results
+
+  done [state, body, null]
 
 module.exports =
   # define an application instance
@@ -53,3 +70,23 @@ module.exports =
 
           route-init initial-state, context, ->
             cbk initial-state.deref!, react.render-to-string root-component
+
+      # process a form from a particular route and render to string
+      process-form: (path, post-data, cbk) ->
+        route-config = config.routes!
+        initial-state = cursor config.get-initial-state!
+
+        [route-component, context, route-init] = routes.resolve path, route-config
+        return (cbk initial-state.deref!, "404") unless route-component
+
+        root-component = app-component initial-state: initial-state, component: route-component, context: context
+
+        config.start initial-state, ->
+          unless route-init
+            return process-form root-component, initial-state, post-data, (result) ->
+              cbk ...result
+
+          route-init initial-state, context, ->
+            process-form root-component, initial-state, post-data, (result) ->
+              cbk ...result
+
