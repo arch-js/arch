@@ -18,6 +18,7 @@ exports.bundle = (paths, watch, changed) ->
       filename: 'app.js'
 
     resolve:
+      extensions: [ '', '.ls', '.js', '.jsx' ]
       root: path.join paths.app.abs, 'node_modules'
       fallback: path.join paths.reflex.abs, 'node_modules'
 
