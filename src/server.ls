@@ -1,4 +1,4 @@
-require! <[ express fs path jade react bluebird ./bundler LiveScript ]>
+require! <[ express fs path jade react bluebird body-parser ./bundler LiveScript ]>
 {each, values, filter, find, flatten, map, first} = require 'prelude-ls'
 
 __template = jade.compile-file (path.join __dirname, 'index.jade')
@@ -26,14 +26,14 @@ module.exports = (options=defaults) ->
     .then ->
       res.send it
 
-  post = (req, resp) ->
+  post = (req, res) ->
     post-data = req.body
     console.log "POST ", req.original-url, post-data
 
-    reflex-post app, request.original-url, post-data, options
-    .then ([status, headers, body]) !->
+    reflex-post app, req.original-url, post-data, options
+    .spread (status, headers, body) ->
       console.log "#status", headers
-      response
+      res
         .status status
         .set headers
         .send body
@@ -41,6 +41,7 @@ module.exports = (options=defaults) ->
   start: (cb) ->
     server = express!
     .use "/#{options.paths.public}", express.static path.join(options.paths.app.abs, options.paths.public)
+    .use body-parser.urlencoded!
     .get '*', get
     .post '*', post
 
@@ -78,11 +79,13 @@ module.exports = (options=defaults) ->
   /* end-test-exports */
 
 reflex-get = (app, url, options) ->
-  app.render url, (app-state, body) ->
+  app.render url
+  .spread (app-state, body) ->
     reflex-render path.join(options.paths.layouts, 'default.html'), body, app-state, options
 
 reflex-post = (app, url, post-data, options) ->
-  app.process-form url, post-data, (app-state, body, location) ->
+  app.process-form url, post-data
+  .spread (app-state, body, location) ->
     if body
       reflex-render path.join(options.paths.layouts, 'default.html'), body, app-state, options
       .then ->

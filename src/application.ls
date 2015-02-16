@@ -1,5 +1,6 @@
 react = require 'react/addons'
-require! <[ ./routes ./cursor ./dom ]>
+server-rendering-transaction = require 'react/lib/ReactServerRenderingTransaction'
+require! <[ bluebird ./routes ./cursor ./dom ]>
 global import require 'prelude-ls'
 
 test-utils = react.addons.TestUtils
@@ -21,17 +22,34 @@ app-component = react.create-factory react.create-class do
 
 # The core of isomorphic form processing.
 # TODO probably extract to a separate module
-process-form = (root-component, initial-state, post-data, done) ->
-  state = initial-state.deref!
-  body = "Processing form for post-data: #{JSON.stringify(post-data)} <br/>Resulting app-state: #{JSON.stringify(state)}"
+process-form = (root-element, initial-state, post-data) ->
+  new bluebird (res, rej) ->
+    state = initial-state.deref!
+    body = "Processing form for post-data: #{JSON.stringify(post-data)} <br/>Resulting app-state: #{JSON.stringify(state)}"
 
-  results = test-utils.findAllInRenderedTree root-component, ->
-    console.log "Test", it.props.class-name
-    true
+    # WARNING! Magic ahead
+    # mount the component virtually, emulating server side rendering, but
+    # getting the rendered instance back to be able to search it
 
-  console.log "find all results", results
+    # use react server rendering transaction to get the markup tree safely
+    transaction = server-rendering-transaction.get-pooled true
 
-  done [state, body, null]
+    instance = new root-element.type root-element.props
+    instance.construct root-element
+
+    try
+      transaction.perform ->
+        instance.mount-component "canBeAynthingWhee", transaction, 0
+    finally
+      server-rendering-transaction.release(transaction);
+
+    elements = test-utils.find-all-in-rendered-tree instance, ->
+      return it._tag in ['input', 'form']
+
+    console.log "Form elements: ", elements
+    # end of magic
+
+    res [state, body, null]
 
 module.exports =
   # define an application instance
@@ -55,38 +73,37 @@ module.exports =
         app-state.on-change -> root.set-state app-state: app-state
         routes.start config.routes!, root, app-state
 
-      # render a particular route to string
-      render: (path, cbk) ->
-        route-config = config.routes!
-        initial-state = cursor config.get-initial-state!
+      # render a particular route to string, returns a promise
+      render: (path) ->
+        new bluebird (res, rej) ->
+          route-config = config.routes!
+          initial-state = cursor config.get-initial-state!
 
-        [route-component, context, route-init] = routes.resolve path, route-config
+          [route-component, context, route-init] = routes.resolve path, route-config
 
-        root-component = app-component initial-state: initial-state, component: route-component, context: context
+          root-component = app-component initial-state: initial-state, component: route-component, context: context
 
-        # FIXME switch to promises and run both in paralel
-        config.start initial-state, ->
-          return (cbk initial-state.deref!, react.render-to-string root-component) unless route-init
+          # FIXME switch to promises and run both in paralel
+          config.start initial-state, ->
+            return res [initial-state.deref!, react.render-to-string root-component] unless route-init
 
-          route-init initial-state, context, ->
-            cbk initial-state.deref!, react.render-to-string root-component
+            route-init initial-state, context, ->
+              res [initial-state.deref!, react.render-to-string root-component]
 
       # process a form from a particular route and render to string
-      process-form: (path, post-data, cbk) ->
-        route-config = config.routes!
-        initial-state = cursor config.get-initial-state!
+      # returns a promise of [state, body, location]
+      process-form: (path, post-data) ->
+        new bluebird (res, rej) ->
+          route-config = config.routes!
+          initial-state = cursor config.get-initial-state!
 
-        [route-component, context, route-init] = routes.resolve path, route-config
-        return (cbk initial-state.deref!, "404") unless route-component
+          [route-component, context, route-init] = routes.resolve path, route-config
 
-        root-component = app-component initial-state: initial-state, component: route-component, context: context
+          root-element = app-component initial-state: initial-state, component: route-component, context: context
 
-        config.start initial-state, ->
-          unless route-init
-            return process-form root-component, initial-state, post-data, (result) ->
-              cbk ...result
+          config.start initial-state, ->
+            return res process-form root-element, initial-state, post-data unless route-init
 
-          route-init initial-state, context, ->
-            process-form root-component, initial-state, post-data, (result) ->
-              cbk ...result
+            route-init initial-state, context, ->
+              res process-form root-element, initial-state, post-data
 
