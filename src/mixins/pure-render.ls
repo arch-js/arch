@@ -2,7 +2,9 @@
 require! 'deep-equal'
 
 eq = (a, b) ->
-  return false unless a and b
+  return false unless typeof a isnt 'undefined' and typeof b isnt 'undefined'
+  a = rationalise a
+  b = rationalise b
   if is-cursor a and is-cursor b
     # Both are cursors, compare data equality
     cursor-eq a, b
@@ -17,6 +19,11 @@ cursor-eq = (a, b) ->
 
 is-cursor = ->
   return it and typeof it.deref is 'function' and typeof it.eq is 'function'
+
+rationalise = ->
+  return {} unless it
+  return __value: it if typeof it !== 'object'
+  return it
 
 module.exports =
   should-component-update: (next-props, next-state) ->
