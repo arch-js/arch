@@ -9,10 +9,7 @@ eq = (a, b) ->
     # Both are cursors, compare data equality
     cursor-eq a, b
   else
-    mutable-eq a, b
-
-mutable-eq = (a, b) ->
-  deep-equal a, b
+    deep-equal a, b
 
 cursor-eq = (a, b) ->
   a.eq b
