@@ -66,4 +66,3 @@ module.exports =
 
             route-init initial-state, context, ->
               res server-rendering.process-form root-element, initial-state, post-data, path
-
