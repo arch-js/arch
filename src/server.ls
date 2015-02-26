@@ -41,7 +41,7 @@ module.exports = (options=defaults) ->
   start: (cb) ->
     server = express!
     .use "/#{options.paths.public}", express.static path.join(options.paths.app.abs, options.paths.public)
-    .use body-parser.urlencoded!
+    .use body-parser.urlencoded extended: false
     .get '*', get
     .post '*', post
 

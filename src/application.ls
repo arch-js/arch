@@ -1,7 +1,9 @@
-react = require 'react/addons'
-server-rendering-transaction = require 'react/lib/ReactServerRenderingTransaction'
+ReactServerRenderingTransaction = require 'react/lib/ReactServerRenderingTransaction'
+ReactDefaultBatchingStrategy = require 'react/lib/ReactDefaultBatchingStrategy'
+ReactUpdates = require 'react/lib/ReactUpdates'
+
 require! <[ bluebird ./routes ./cursor ./dom ]>
-global import require 'prelude-ls'
+{difference, filter, first, keys, Obj} = require 'prelude-ls'
 
 test-utils = React.addons.TestUtils
 
@@ -23,17 +25,20 @@ app-component = React.create-factory React.create-class do
 
 # The core of isomorphic form processing.
 # TODO probably extract to a separate module
-process-form = (root-element, initial-state, post-data) ->
-  new bluebird (res, rej) ->
-    state = initial-state.deref!
-    body = "Processing form for post-data: #{JSON.stringify(post-data)} <br/>Resulting app-state: #{JSON.stringify(state)}"
+process-form = (root-element, initial-state, post-data, path) ->
+  # You could read this as switching React into server-only mode
+  ReactDefaultBatchingStrategy.isBatchingUpdates = true
+  ReactUpdates.injection.injectReconcileTransaction ReactServerRenderingTransaction
+  ReactUpdates.injection.injectBatchingStrategy ReactDefaultBatchingStrategy
+  console.log "Reconfigured react..."
 
+  new bluebird (res, rej) ->
     # WARNING! Magic ahead
     # mount the component virtually, emulating server side rendering, but
     # getting the rendered instance back to be able to search it
 
     # use react server rendering transaction to get the markup tree safely
-    transaction = server-rendering-transaction.get-pooled true
+    transaction = ReactServerRenderingTransaction.get-pooled true
 
     instance = new root-element.type root-element.props
     instance.construct root-element
@@ -42,13 +47,52 @@ process-form = (root-element, initial-state, post-data) ->
       transaction.perform ->
         instance.mount-component "canBeAynthingWhee", transaction, 0
     finally
-      server-rendering-transaction.release(transaction);
+      ReactServerRenderingTransaction.release(transaction);
 
-    elements = test-utils.find-all-in-rendered-tree instance, ->
-      return it._tag in ['input', 'form']
+    forms = test-utils.find-all-in-rendered-tree instance, ->
+      return it._tag is 'form'
 
-    console.log "Form elements: ", elements
+    # FIXME ignore forms & inputs that are not in the post body
+    input-names = keys post-data
+
+    inputs = []
+    form = forms
+    |> filter (.props.action is path)
+    |> find (form) ->
+      inputs := test-utils.find-all-in-rendered-tree form, ->
+        return it._tag in ['input', 'textarea', 'select'] and it.props.name in input-names
+
+      return !empty inputs
+
+    console.log "Form on-submit:", form.props.on-submit
+
+    console.log "Inputs:"
+    inputs |> each ->
+      node = {}
+      console.log "- name:", it.props.name
+
+      console.log "triggering on change handler"
+
+      # FIXME this is obviously not enough of a fake event, but it will do for now
+      fake-event = target: value: post-data[it.props.name]
+
+      it.props.on-change fake-event
+      ReactUpdates.flushBatchedUpdates!
+
+    console.log "triggering submit event"
+
+    # FIXME this is obviously not enough of a fake event, but it will do for now
+    fake-event = prevent-default: ->
+
+    ReactUpdates.flushBatchedUpdates!
+    form.props.on-submit fake-event
+
+    ReactUpdates.flushBatchedUpdates!
+
     # end of magic
+
+    state = initial-state.deref!
+    body = React.render-to-string root-element
 
     res [state, body, null]
 
@@ -103,8 +147,8 @@ module.exports =
           root-element = app-component initial-state: initial-state, component: route-component, context: context
 
           config.start initial-state, ->
-            return res process-form root-element, initial-state, post-data unless route-init
+            return res process-form root-element, initial-state, post-data, path unless route-init
 
             route-init initial-state, context, ->
-              res process-form root-element, initial-state, post-data
+              res process-form root-element, initial-state, post-data, path
 
