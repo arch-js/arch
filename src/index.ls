@@ -1,11 +1,11 @@
-require! <[ react path ]>
+# Everyone shares a single instance of react
+global.React = require 'react/addons'
+
+require! <[ path ]>
 require! './dom'
 
-unless typeof window is 'undefined'
-  global.React = react
-
 create-component = (spec) ->
-  dom react.create-class spec
+  dom React.create-class spec
 
 # Core framework namespace bundling together individual modules
 module.exports =
@@ -13,6 +13,7 @@ module.exports =
   routes: require './routes'
   cursor: require './cursor'
   dom: dom
+  DOM: dom
 
   # move to util?
   create-component: create-component

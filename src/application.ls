@@ -3,10 +3,11 @@ server-rendering-transaction = require 'react/lib/ReactServerRenderingTransactio
 require! <[ bluebird ./routes ./cursor ./dom ]>
 global import require 'prelude-ls'
 
-test-utils = react.addons.TestUtils
+test-utils = React.addons.TestUtils
 
 {span} = dom
-app-component = react.create-factory react.create-class do
+
+app-component = React.create-factory React.create-class do
   display-name: 'reflex-application'
 
   get-initial-state: ->
@@ -68,7 +69,7 @@ module.exports =
         config.start app-state, (->)
 
         root-component = app-component initial-state: app-state, component: route-component, context: context
-        root = react.render root-component, root-element
+        root = React.render root-component, root-element
 
         app-state.on-change -> root.set-state app-state: app-state
         routes.start config.routes!, root, app-state
@@ -85,10 +86,10 @@ module.exports =
 
           # FIXME switch to promises and run both in paralel
           config.start initial-state, ->
-            return res [initial-state.deref!, react.render-to-string root-component] unless route-init
+            return res [initial-state.deref!, React.render-to-string root-component] unless route-init
 
             route-init initial-state, context, ->
-              res [initial-state.deref!, react.render-to-string root-component]
+              res [initial-state.deref!, React.render-to-string root-component]
 
       # process a form from a particular route and render to string
       # returns a promise of [state, body, location]
