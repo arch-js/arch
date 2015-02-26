@@ -74,20 +74,20 @@ module.exports = (options=defaults) ->
   /* test-exports */
   get: reflex-get
   post: reflex-post
-  render: reflex-render
+  render: layout-render
   interp: reflex-interp
   /* end-test-exports */
 
 reflex-get = (app, url, options) ->
   app.render url
   .spread (app-state, body) ->
-    reflex-render path.join(options.paths.layouts, 'default.html'), body, app-state, options
+    layout-render path.join(options.paths.layouts, 'default.html'), body, app-state, options
 
 reflex-post = (app, url, post-data, options) ->
   app.process-form url, post-data
   .spread (app-state, body, location) ->
     if body
-      reflex-render path.join(options.paths.layouts, 'default.html'), body, app-state, options
+      layout-render path.join(options.paths.layouts, 'default.html'), body, app-state, options
       .then ->
         [200, {}, it]
     else
@@ -98,7 +98,7 @@ reflex-post = (app, url, post-data, options) ->
 reflex-interp = (template, body) ->
   template.to-string!.replace '{reflex-body}', body
 
-reflex-render = (path, body, app-state, options) ->
+layout-render = (path, body, app-state, options) ->
   read-file path
   .then (template) ->
     reflex-interp template,
