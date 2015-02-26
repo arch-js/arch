@@ -1,8 +1,8 @@
 # Everyone shares a single instance of react
 global.React = require 'react/addons'
 
-require! <[ path ]>
-require! './dom'
+# FIXME require server-rendering only on the server
+require! <[ path ./dom ./server-rendering ]>
 
 create-component = (spec) ->
   dom React.create-class spec
@@ -15,5 +15,8 @@ module.exports =
   dom: dom
   DOM: dom
 
-  # move to util?
+  # TODO support client-side redirect as well
+  redirect: server-rendering.redirect
+
+  # move to util? or remove entirely
   create-component: create-component

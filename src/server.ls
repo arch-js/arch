@@ -91,9 +91,8 @@ reflex-post = (app, url, post-data, options) ->
       .then ->
         [200, {}, it]
     else
-      new Promise (res, rej) ->
-        # FIXME build a full URL for location to comply with HTTP
-        res [302, 'Location': location, ""];
+      # FIXME build a full URL for location to comply with HTTP
+      bluebird.resolve [302, 'Location': location, ""];
 
 reflex-interp = (template, body) ->
   template.to-string!.replace '{reflex-body}', body

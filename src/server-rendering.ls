@@ -17,7 +17,6 @@ configure-react = ->
   ReactDefaultBatchingStrategy.isBatchingUpdates = true
   ReactUpdates.injection.injectReconcileTransaction ReactServerRenderingTransaction
   ReactUpdates.injection.injectBatchingStrategy ReactDefaultBatchingStrategy
-  console.log "Reconfigured react..."
 
 render-tree = (element) ->
   # use react server rendering transaction to get the markup tree safely
