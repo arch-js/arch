@@ -97,7 +97,7 @@ reflex-post = (app, url, post-data, options) ->
 reflex-interp = (template, body) ->
   template.to-string!.replace '{reflex-body}', body
 
-reflex-render = (app, url, options) ->
+layout-render = (app, url, options) ->
   app.render url, (app-state, body) ->
     read-file path.join options.paths.layouts, 'default.html'
     .then ->
