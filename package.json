@@ -31,8 +31,7 @@
     "compile": "./node_modules/.bin/gulp",
     "prepublish": "npm run-script compile",
     "pretest": "npm run-script compile",
-    "test": "./node_modules/jasmine/bin/jasmine.js",
-    "postinstall": "./node_modules/.bin/gulp"
+    "test": "./node_modules/jasmine/bin/jasmine.js"
   },
   "dependencies": {
     "babel-core": "^4.6.5",
