@@ -7,6 +7,12 @@ require! <[ path ./dom ./server-rendering ]>
 create-component = (spec) ->
   dom React.create-class spec
 
+redirect = (path) ->
+  if @routes.running
+    @routes.navigate path
+  else
+    server-rendering.redirect path
+
 # Core framework namespace bundling together individual modules
 module.exports =
   application: require './application'
@@ -15,8 +21,7 @@ module.exports =
   dom: dom
   DOM: dom
 
-  # TODO support client-side redirect as well
-  redirect: server-rendering.redirect
+  redirect: redirect
 
   # move to util? or remove entirely
   create-component: create-component
