@@ -2,6 +2,7 @@ require! {
   '../src/server'
   fs
   path
+  bluebird
 }
 
 describe "server" (_) ->
@@ -10,14 +11,14 @@ describe "server" (_) ->
 
     before-each !->
       support-templates := "#{__dirname}/support/fixtures"
-      app := render: jasmine.create-spy 'spy' .and.call-fake (url, cbk) -> cbk 'app-state', 'body'
+      app := render: jasmine.create-spy 'spy' .and.call-fake (url) -> bluebird.resolve ['app-state', 'body']
       inst := server app: app
 
     it "calls the method that renders a route to string" !->
       inst.get app, 'url', paths: { layouts: support-templates, public: 'dist' }
       # Test that the method that renders a route to a string has been called
       # with a URL an anonymous function.
-      expect app.render .to-have-been-called-with 'url', jasmine.any(Function)
+      expect app.render .to-have-been-called-with 'url'
 
     it "throws an error if the specified template cannot be found" (done) !->
       var failed
