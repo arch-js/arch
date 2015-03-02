@@ -1,11 +1,17 @@
-require! <[ react path ]>
-require! './dom'
+# Everyone shares a single instance of react
+global.React = require 'react/addons'
 
-unless typeof window is 'undefined'
-  global.React = react
+# FIXME require server-rendering only on the server
+require! <[ path ./dom ./server-rendering ]>
 
 create-component = (spec) ->
-  dom react.create-class spec
+  dom React.create-class spec
+
+redirect = (path) ->
+  if @routes.running
+    @routes.navigate path
+  else
+    server-rendering.redirect path
 
 # Core framework namespace bundling together individual modules
 module.exports =
@@ -13,6 +19,9 @@ module.exports =
   routes: require './routes'
   cursor: require './cursor'
   dom: dom
+  DOM: dom
 
-  # move to util?
+  redirect: redirect
+
+  # move to util? or remove entirely
   create-component: create-component

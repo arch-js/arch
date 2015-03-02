@@ -1,8 +1,7 @@
-require! <[ react ./routes ./cursor ./dom ]>
-
+require! <[ bluebird ./routes ./cursor ./dom ./server-rendering ]>
 {span} = dom
 
-app-component = dom react.create-class do
+app-component = React.create-factory React.create-class do
   display-name: 'reflex-application'
 
   get-initial-state: ->
@@ -22,34 +21,49 @@ module.exports =
     do
       # start the application
       start: ->
-        route-config = config.routes!
-        root-element = document.get-element-by-id "application"
-        initial-state = JSON.parse root-element.get-attribute 'data-reflex-app-state'
-
         path = (location.pathname + location.search + location.hash)
+        root-dom-node = document.get-element-by-id "application"
 
-        [route-component, context, route-init] = routes.resolve path, route-config
-        app-state = cursor (initial-state or config.get-initial-state!)
-        config.start app-state, (->)
+        server-state = JSON.parse root-dom-node.get-attribute 'data-reflex-app-state'
+        initial-state = cursor (server-state or config.get-initial-state!)
 
-        root-component = app-component initial-state: app-state, component: route-component, context: context
-        root = react.render root-component, root-element
+        [route-component, context, _] = routes.resolve path, config.routes!
+        root-element = app-component initial-state: initial-state, component: route-component, context: context
 
-        app-state.on-change -> root.set-state app-state: app-state
-        routes.start config.routes!, root, app-state
+        config.start initial-state, (->)
+
+        root = React.render root-element, root-dom-node
+
+        initial-state.on-change -> root.set-state app-state: initial-state
+        routes.start config.routes!, root, initial-state
 
       # render a particular route to string
-      render: (path, cbk) ->
-        route-config = config.routes!
-        initial-state = cursor config.get-initial-state!
+      # returns a promise of [state, body]
+      render: (path) ->
+        new bluebird (res, rej) ->
+          initial-state = cursor config.get-initial-state!
 
-        [route-component, context, route-init] = routes.resolve path, route-config
+          [route-component, context, route-init] = routes.resolve path, config.routes!
+          root-element = app-component initial-state: initial-state, component: route-component, context: context
 
-        root-component = app-component initial-state: initial-state, component: route-component, context: context
+          config.start initial-state, ->
+            return res [initial-state.deref!, React.render-to-string root-element] unless route-init
 
-        # FIXME switch to promises and run both in paralel
-        config.start initial-state, ->
-          return (cbk initial-state.deref!, react.render-to-string root-component) unless route-init
+            route-init initial-state, context, ->
+              res [initial-state.deref!, React.render-to-string root-element]
 
-          route-init initial-state, context, ->
-            cbk initial-state.deref!, react.render-to-string root-component
+      # process a form from a particular route and render to string
+      # returns a promise of [state, body, location]
+      process-form: (path, post-data) ->
+        new bluebird (res, rej) ->
+          initial-state = cursor config.get-initial-state!
+
+          [route-component, context, route-init] = routes.resolve path, config.routes!
+          root-element = app-component initial-state: initial-state, component: route-component, context: context
+
+          config.start initial-state, ->
+            return res server-rendering.process-form root-element, initial-state, post-data, path unless route-init
+
+            route-init initial-state, context, ->
+              res server-rendering.process-form root-element, initial-state, post-data, path
+

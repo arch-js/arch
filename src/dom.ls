@@ -1,4 +1,4 @@
-require! <[ react ./cursor ]>
+require! <[ ./cursor ]>
 {first, tail, each, keys, is-type} = require 'prelude-ls'
 
 _cursor = cursor []
@@ -7,7 +7,7 @@ is-cursor = -> # TODO: better checking for this...
 
 obj-is-el = ->
   return true if is-type 'Array', it
-  return react.is-valid-element it
+  return React.is-valid-element it
 
 is-node = ->
   switch typeof it
@@ -25,15 +25,15 @@ component = (el, args) ->
     children = args
     props = {}
 
-  props.children = (if children.length is 1 then children[0] else children)
+  props.children = (if children and children.length is 1 then children[0] else children)
 
-  react.create-element el, props
+  React.create-element el, props
 
 dom = (el) ->
   (...args) ->
     component el, args
 
-react.DOM |> keys |> each ->
+React.DOM |> keys |> each ->
   dom[it] = dom it
 
 module.exports = dom

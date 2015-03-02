@@ -44,6 +44,8 @@ context-from-url = (url, params) ->
   params: ({} import query) import params
 
 module.exports =
+  running: false
+
   define: (...configs) ->
     configs
 
@@ -53,6 +55,9 @@ module.exports =
     route: new page.Route pattern
     component: component-class
     init: if 'function' is typeof init then init
+
+  navigate: (path) ->
+    page.show path
 
   start: (configs, root-component, app-state) ->
     configs |> each (config) ->
@@ -67,6 +72,7 @@ module.exports =
 
     # only start client-side routing if pushState is available
     page.start! if (typeof window.history.replace-state isnt 'undefined')
+    @running = true
 
   resolve: (url, config) ->
     params = []
