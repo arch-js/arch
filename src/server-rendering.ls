@@ -45,27 +45,31 @@ extract-elements = (path, post-data, instance) ->
   |> filter (.props.action is path)
   |> find (form) ->
     inputs := test-utils.find-all-in-rendered-tree form, ->
-      return it._tag in ['input', 'textarea', 'select'] and it.props.name in input-names
+      return it._tag in ['input', 'textarea', 'select']
 
-    return !empty inputs
+    return (inputs |> any -> it.props.name in input-names)
 
   [form, inputs]
 
 # FIXME this is obviously not enough of a fake event, but it will do for now
 # report ALL issues you find with this
-fake-event = (opts = {}) ->
+fake-event = (element, opts = {}) ->
+  target = if element.props.type in ['checkbox', 'radio']
+    checked: !!opts.value
+  else
+    value: opts.value
+
   stop-propagation: ->
   prevent-default: ->
-  target:
-    value: opts.value
+  target: target
 
 change-inputs = (inputs, post-data) ->
   inputs |> each ->
-    it.props.on-change fake-event value: post-data[it.props.name]
+    it.props.on-change (fake-event it, value: post-data[it.props.name])
     ReactUpdates.flushBatchedUpdates!
 
 submit-form = (form) ->
-  form.props.on-submit fake-event!
+  form.props.on-submit fake-event form
   ReactUpdates.flushBatchedUpdates!
 
 process-form = (root-element, initial-state, post-data, path) ->
