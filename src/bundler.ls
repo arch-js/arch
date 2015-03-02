@@ -24,7 +24,7 @@ exports.bundle = (paths, watch, changed) ->
     resolve:
       root: path.join paths.app.abs, 'node_modules'
       fallback: path.join paths.reflex.abs, 'node_modules'
-      extensions: [ '', '.ls', '.js', '.jsx' ]
+      extensions: [ '', '.js', '.jsx' ]
 
     resolve-loader:
       root: path.join paths.reflex.abs, 'node_modules'
@@ -35,8 +35,9 @@ exports.bundle = (paths, watch, changed) ->
 
     module:
       pre-loaders: [
-        * test: /\.ls$/
-          loader: 'livescript-loader'
+        * test: /\.js$/
+          loader: 'babel-loader'
+          exclude: /node_modules/
       ]
       loaders: []
       post-loaders: []
@@ -52,7 +53,7 @@ exports.bundle = (paths, watch, changed) ->
     config.entry.unshift 'webpack-dev-server/client?http://localhost:3001'
     config.output.public-path = 'http://localhost:3001/'
     config.module.loaders.push do
-      test: /\.(?:js|jsx|ls)$/
+      test: /\.(?:js|jsx)$/
       loader: 'react-hot'
       exclude: /node_modules/
     config.plugins.push new webpack.HotModuleReplacementPlugin!
