@@ -11,7 +11,7 @@ app-component = React.create-factory React.create-class do
 
   render: ->
     if @state.component
-      react.create-element that, context: @state.context, app-state: @state.app-state
+      React.create-element that, context: @state.context, app-state: @state.app-state
     else
       span "Page not found."
 

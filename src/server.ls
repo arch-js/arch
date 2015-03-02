@@ -97,12 +97,11 @@ reflex-post = (app, url, post-data, options) ->
 reflex-interp = (template, body) ->
   template.to-string!.replace '{reflex-body}', body
 
-layout-render = (app, url, options) ->
-  app.render url, (app-state, body) ->
-    read-file path.join options.paths.layouts, 'default.html'
-    .then ->
-      bundle-path = if options.environment is 'development' then "http://localhost:3001/app.js" else "/#{options.paths.public}/app.js"
-      reflex-interp it,
-        __template public: options.paths.public, bundle: bundle-path, body: body, state: app-state
-    .error !->
-      throw new Error 'Template not found!'
+layout-render = (path, body, app-state, options) ->
+  read-file path
+  .then (template) ->
+    bundle-path = if options.environment is 'development' then "http://localhost:3001/app.js" else "/#{options.paths.public}/app.js"
+    reflex-interp template,
+      __template public: options.paths.public, bundle: bundle-path, body: body, state: app-state
+  .error !->
+    throw new Error 'Template not found'
