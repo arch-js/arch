@@ -25,7 +25,8 @@
   "main": "./lib/index.js",
   "files": [
     "package.json",
-    "lib/"
+    "lib/",
+    "bin/"
   ],
   "scripts": {
     "compile": "./node_modules/.bin/gulp",
