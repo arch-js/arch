@@ -13,8 +13,8 @@ defaults =
       rel: path.relative __dirname, path.resolve '.'
     layouts: 'app/layouts'
     reflex:
-      abs: path.dirname require.resolve "reflex/package.json"
-      rel: path.relative (path.resolve '.'), (path.dirname require.resolve "reflex/package.json")
+      abs: path.dirname require.resolve "../package.json"
+      rel: path.relative (path.resolve '.'), (path.dirname require.resolve "../package.json")
     public: 'dist'
 
 module.exports = (options=defaults) ->
