@@ -100,7 +100,8 @@ reflex-interp = (template, body) ->
 layout-render = (path, body, app-state, options) ->
   read-file path
   .then (template) ->
+    bundle-path = if options.environment is 'development' then "http://localhost:3001/app.js" else "/#{options.paths.public}/app.js"
     reflex-interp template,
-      __template public: options.paths.public, bundle: "/#{options.paths.public}/app.js", body: body, state: app-state
+      __template public: options.paths.public, bundle: bundle-path, body: body, state: app-state
   .error !->
     throw new Error 'Template not found'
