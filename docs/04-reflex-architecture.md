@@ -26,7 +26,7 @@ Crucially, you need to pass the stores to your top-level react components for th
 
 ## Centralised state
 
-Taking inspiration from the Om framework for ClojureScript, Reflex aims to resolve the above issues using a centralised application state. The application state is a single, tree-like data structure, modelling the state of your user interface as data. That has several advantages: you can reconstruct your application into any stat just by loading the right application state, you can use state for bug reporting, you can record a history of the state to implement undo functionality, persist the state in different places and easily restore the UI state, etc…
+Taking inspiration from the Om framework for ClojureScript, Reflex aims to resolve the above issues using a centralised application state. The application state is a single, tree-like data structure, modelling the state of your user interface as data. That has several advantages: you can reconstruct your application into any state just by loading the right application state, you can use state for bug reporting, you can record a history of the state to implement undo functionality, persist the state in different places and easily restore the UI state, etc…
 
 On the other hand, having one global state breaks component isolation - the components are no longer independent of the global structure of your app state. To get the isolation back, you need to make the global state “feel” like local state. Specifically, this means allowing components to use the state data freely without affecting other components in an unexpected ways, yet still allowing them to explicitly update the state.
 
