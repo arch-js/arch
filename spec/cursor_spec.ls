@@ -1,4 +1,4 @@
-require! '../src/cursor'
+require!  <[ ../src/cursor bluebird ]>
 
 {map} = require 'prelude-ls'
 
@@ -191,3 +191,69 @@ describe "cursor" (_) ->
 
       expect trace .to-equal [36, 36, 37, 37, 38, 38, 39, 39, 40, 40]
 
+  describe "update transactions", (_) ->
+    it "starts" ->
+      data = cursor raw-data
+      transaction = data.start-transaction!
+
+      expect transaction .not.to-be undefined
+
+    it "ends and returns a promise" ->
+      data = cursor raw-data
+
+      transaction = data.start-transaction!
+      promise = data.end-transaction transaction
+
+      expect promise .not.to-be undefined
+      expect promise.then .not.to-be undefined
+
+    it "throws when transaction isn't running" ->
+      data = cursor raw-data
+
+      expect(-> data.end-transaction "foo").to-throw new Error "Transaction isn't running"
+
+    it "waits for a promise returned by an on-change handler" (done) ->
+      data = cursor raw-data .get \person.first_name
+      log = []
+
+      data.on-change ->
+        log.push "first"
+        bluebird.delay 0
+        .then !->
+          log.push "second"
+
+      transaction = data.start-transaction!
+      data.update -> "Ringo"
+
+      data.end-transaction transaction
+      .then ->
+        expect log .to-equal ["first", "second"]
+      .finally done
+
+      expect log .to-equal ["first"]
+
+    it "waits for multiple promises returned by different on-change handlers" (done) ->
+      data = cursor raw-data .get \person.first_name
+      log = []
+
+      data.on-change ->
+        log.push "first"
+        bluebird.delay 0
+        .then !->
+          log.push "third"
+
+      data.on-change ->
+        log.push "second"
+        bluebird.delay 0
+        .then !->
+          log.push "fourth"
+
+      transaction = data.start-transaction!
+      data.update -> "Ringo"
+
+      data.end-transaction transaction
+      .then ->
+        expect log .to-equal ["first", "second", "third", "fourth"]
+      .finally done
+
+      expect log .to-equal ["first", "second"]
