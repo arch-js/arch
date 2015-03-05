@@ -2,7 +2,7 @@
 
 Reflex strives to reduce the complexity of user facing applications as much as possible [in the same sense React does](https://speakerdeck.com/vjeux/why-does-react-scale-jsconf-2014) - reducing the time to find a cause of a problem. That means reducing the number of places where a problem you are diagnosing can be caused.
 
-One of the biggest reasons for unexpected behaviour is state (we often say “state is your worth enemy”). State handling therefore requires extra care when designing an application architecture. A big step in reducing the state space of your application is following the methods of functional programming - a pure function, by definition, has no internal state and is referentially transparent (calling the function with the same arguments always produces the same results) - which Reflex promotes.
+One of the biggest reasons for unexpected behaviour is state (we often say “state is your worst enemy”). State handling therefore requires extra care when designing an application architecture. A big step in reducing the state space of your application is following the methods of functional programming - a pure function, by definition, has no internal state and is referentially transparent (calling the function with the same arguments always produces the same results) - which Reflex promotes.
 
 You cannot avoid all state though. So even when building applications in a functional style, you still need to  pay extra attention to managing your application's state.
 
