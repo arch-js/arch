@@ -37,6 +37,10 @@ exports.bundle = (paths, watch, changed) ->
       pre-loaders: [
         * test: /\.ls$/
           loader: 'livescript-loader'
+          exclude: /node_modules/
+        * test: /\.(?:js|jsx)$/
+          loader: 'babel-loader'
+          exclude: /node_modules/
       ]
       loaders: []
       post-loaders: []
