@@ -30,7 +30,7 @@ module.exports =
         [route-component, context, _] = routes.resolve path, config.routes!
         root-element = app-component initial-state: initial-state, component: route-component, context: context
 
-        config.start initial-state, (->)
+        config.start initial-state
 
         root = React.render root-element, root-dom-node
 
@@ -40,29 +40,38 @@ module.exports =
       # render a particular route to string
       # returns a promise of [state, body]
       render: (path) ->
-        new bluebird (res, rej) ->
-          initial-state = cursor config.get-initial-state!
+        app-state = cursor config.get-initial-state!
 
-          [route-component, context, route-init] = routes.resolve path, config.routes!
-          root-element = app-component initial-state: initial-state, component: route-component, context: context
+        [route-component, context, route-init] = routes.resolve path, config.routes!
+        root-element = app-component initial-state: app-state, component: route-component, context: context
 
-          config.start initial-state, ->
-            return res [initial-state.deref!, React.render-to-string root-element] unless route-init
+        transaction = app-state.start-transaction!
 
-            route-init initial-state, context, ->
-              res [initial-state.deref!, React.render-to-string root-element]
+        config.start app-state
+        route-init app-state, context if route-init
+
+        app-state.end-transaction transaction
+        .then ->
+          [app-state.deref!, React.render-to-string root-element]
 
       # process a form from a particular route and render to string
       # returns a promise of [state, body, location]
       process-form: (path, post-data) ->
-        new bluebird (res, rej) ->
-          initial-state = cursor config.get-initial-state!
+        app-state = cursor config.get-initial-state!
 
-          [route-component, context, route-init] = routes.resolve path, config.routes!
-          root-element = app-component initial-state: initial-state, component: route-component, context: context
+        [route-component, context, route-init] = routes.resolve path, config.routes!
+        root-element = app-component initial-state: app-state, component: route-component, context: context
 
-          config.start initial-state, ->
-            return res server-rendering.process-form root-element, initial-state, post-data, path unless route-init
+        transaction = app-state.start-transaction!
 
-            route-init initial-state, context, ->
-              res server-rendering.process-form root-element, initial-state, post-data, path
+        config.start app-state
+        route-init app-state, context if route-init
+
+        location = server-rendering.process-form root-element, app-state, post-data, path
+
+        app-state.end-transaction transaction
+        .then ->
+          body = unless location then React.render-to-string root-element else null
+
+          [app-state.deref!, body, location]
+

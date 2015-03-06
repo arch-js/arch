@@ -72,6 +72,8 @@ submit-form = (form) ->
   form.props.on-submit fake-event form
   ReactUpdates.flushBatchedUpdates!
 
+# Processes a form server-side, returns a redirect location or null
+# FIXME should we deal with the redirect in application.ls?
 process-form = (root-element, initial-state, post-data, path) ->
   configure-react!
   reset-redirect!
@@ -96,12 +98,9 @@ process-form = (root-element, initial-state, post-data, path) ->
 
   # end of magic
 
-  return [null, null, that] if redirect-location
+  return that if redirect-location
 
-  state = initial-state.deref!
-  body = React.render-to-string root-element
-
-  [state, body, null]
+  null
 
 reset-redirect = ->
   redirect-location := null
