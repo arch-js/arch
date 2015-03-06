@@ -90,10 +90,8 @@ process-form = (root-element, initial-state, post-data, path) ->
 
   [form, inputs] = extract-elements path, post-data, instance
 
-  # trigger on-change handlers
+  # trigger handlers
   change-inputs inputs, post-data
-
-  # trigger on-submit handler
   submit-form form
 
   # end of magic

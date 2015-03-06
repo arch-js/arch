@@ -21,14 +21,14 @@ module.exports = (options=defaults) ->
   app = options.app or require options.paths.app.rel
 
   get = (req, res) ->
-    console.log "GET ", req.original-url
+    console.log "GET", req.original-url
     reflex-get app, req.original-url, options
     .then ->
       res.send it
 
   post = (req, res) ->
     post-data = req.body
-    console.log "POST ", req.original-url, post-data
+    console.log "POST", req.original-url, post-data
 
     reflex-post app, req.original-url, post-data, options
     .spread (status, headers, body) ->
