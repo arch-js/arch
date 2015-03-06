@@ -1,4 +1,4 @@
-require! <[ express fs path jade bluebird body-parser ./bundler LiveScript ]>
+require! <[ express fs path jade bluebird body-parser ./bundler LiveScript babel/register ]>
 {each, values, filter, find, flatten, map, first} = require 'prelude-ls'
 
 __template = jade.compile-file (path.join __dirname, 'index.jade')
