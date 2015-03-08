@@ -10,7 +10,7 @@ The easiest way to start is using the Reflex CLI. You can install it from npm wi
 
 To create a Reflex application create a new directory and run `reflex init` inside
 
-    mkdir demo
+    mkdir demo && cd demo
     reflex init
 
 This will generate an application skeleton. You can start the application by running
@@ -26,20 +26,20 @@ As part of the example application, you’ll get a route to handle  the `/` URL.
 You can specify routes in the `app.ls` file in the `app` directory. This file is responsible for defining your application. You create a Reflex application by calling
 
 ```livescript
-reflex.application-create
+reflex.application.create
 ```
 
 and passing in an object with a handful of functions.
 
-To define routes you specify a `routes` callback, which uses a `reflex.routes.define` call to declare different routes in your application. Let’s add a page listing some data.
+To define routes you specify a `routes` method, which uses a `reflex.routes.define` call to declare different routes in your application. Let’s add a page listing some data.
 
-Add a line saying
+Add a line at the end of `app/app.ls` saying
 
 ```livescript
-page ‘/listing’, listing
+page '/listing', listing
 ```
 
-at the end. This means the ‘/listing’ URL is handled by a ‘listing’ route component.
+This means the ‘/listing’ URL is handled by a ‘listing’ route component.
 
 To make this line work, you need to create the component itself. To do that create a file in the ‘app/routes’ directory, called ‘listing.ls’ with the following code:
 
@@ -48,16 +48,16 @@ require! <[ reflex ]>
 d = reflex.DOM
 
 things =
-  * “Hovercraft full of eels”
-  * “Ex-parrot”
-  * “Eggs, beans, bacon and spam”
-  * “Flying circus”
+  * "Hovercraft full of eels"
+  * "Ex-parrot"
+  * "Eggs, beans, bacon and spam"
+  * "Flying circus"
 
-module.exports = reflex.create-component do
-  display-name: ‘listing’
+module.exports = React.create-class do
+  display-name: 'listing'
   render: ->
     d.div do
-      d.h1 “A list of useful things“
+      d.h1 "A list of useful things"
       d.ul do
         things |> map ->
           d.li it
@@ -66,10 +66,11 @@ module.exports = reflex.create-component do
 then add
 
 ```livescript
-  require! ‘./routes/listing’
+  global import require 'prelude'
+  require! './routes/listing'
 ```
 
-to the top of `app.ls` to be able to reference the component. You can now be go to http://localhost:3000/hello and see your page rendered.
+to the top of `app.ls` to be able to reference the component and use `prelude-ls` implementation of `map`. You can now go to http://localhost:3000/hello and see your page rendered.
 
 Pages (route handlers) in Reflex are React components. They all share the same `props` format, specifically, they all get the following props:
 
@@ -89,38 +90,37 @@ The result is an almost haml/slim like template language, that is pure LiveScrip
 What we built so far is, in essence, a static page. To add some interaction, we need our application to have state. Reflex handles UI state in its most basic form the same way React itself does - using component’s `state`. Let’s make our list searchable.
 
 ```livescript
-  render: ->
-    d.div do
-      d.h1 “A list of useful things“
-      d.form do
-        d.input do
-          type: ‘search’
-          placeholder: ‘Search things’
-          value: ‘’
-      d.ul do
-        things |> map ->
-          d.li it
+render: ->
+  d.div do
+    d.h1 "A list of useful things"
+    d.form do
+      d.input do
+        type: 'search'
+        placeholder: 'Search things'
+    d.ul do
+      things |> map ->
+        d.li it
 ```
 
 Now we need to add some state handling to make it interactive
 
 ```livescript
-matches = (query, item) ––>
+matches = (query, item) -->
   item.index-of query > 0
 
 module.exports = reflex.create-component do
-  display-name: ‘listing’
+  display-name: 'listing'
 
   get-initial-state: ->
-    query: ‘’
+    query: ''
 
   render: ->
     d.div do
-      d.h1 “A list of useful things“
+      d.h1 "A list of useful things"
       d.form do
         d.input do
-          type: ‘search’
-          placeholder: ‘Search things’
+          type: 'search'
+          placeholder: 'Search things'
           value: @state.query
           on-change: ~> @set-state query: it.target.value
       d.ul do
@@ -143,75 +143,83 @@ The application state is a “cursor” - a focused view of a part of a larger d
 Let’s add a list of recent searches into our little demo. Since it will be another listing, we should keep our code DRY and extract the list rendering into a separate component.
 
 ```livescript
-# list.ls
+# components/list.ls
 
 require! <[ reflex ]>
 d = reflex.DOM
 
-module.exports = reflex.create-component do
-  display-name: ‘list’
+module.exports = React.create-class do
+  display-name: 'list'
   render: ->
     d.ul
-      @this.props.item |> map ->
+      @props.item |> map ->
         d.li it
 ```
 
 Then we can use it in our listing route component
 
 ```livescript
-  render: ->
-    d.div do
-      d.h1 “A list of useful things“
-      d.form do
-        d.input do
-          type: ‘search’
-          placeholder: ‘Search things’
-          value: @state.query
-          on-change: ~> @set-state query: it.target.value
-      list do
-        items: (things |> filter matches @state.query)
+list = reflex.dom require '../components/list.ls'
+
+...
+
+render: ->
+  d.div do
+    d.h1 "A list of useful things"
+    d.form do
+      d.input do
+        type: 'search'
+        placeholder: 'Search things'
+        value: @state.query
+        on-change: ~> @set-state query: it.target.value
+    list do
+      items: (things |> filter matches @state.query)
 ```
 
-Actually, the filtering functionality seems very common, lets include that in the component too. The filtering logic itself is very use-case specific though, so it should be external.
+Actually, the filtering functionality seems very common, lets include that in the component too. Move the filtering UI from `listing.ls` to `list.ls`. The filtering logic itself is very use-case specific though, so it should be external.
 
 This is now our listing component
 
 ```livescript
-  render: ->
-    d.div do
-      d.h1 “A list of useful things“
-      list do
-        query: @state.query
-        items: (things |> filter matches @state.query)
+# routes/listing.ls
+render: ->
+  d.div do
+    d.h1 "A list of useful things"
+    # no more form here
+    list do
+      query: @state.query
+      items: (things |> filter matches @state.query)
 ```
 
 and the filterable list
 
 ```livescript
-  render: ->
-    d.div do
-      d.form do
-        d.input do
-          type: ‘search’
-          placeholder: ‘Search things’
-          value: @props.query
-          on-change: ~> # now what?
-      ul do
-        @props.things |> map -> li it
+# components/list.ls
+render: ->
+  d.div do
+    # form from listing.ls
+    d.form do
+      d.input do
+        type: 'search'
+        placeholder: 'Search things'
+        value: @props.query
+        on-change: ~> # now what?
+    ul do
+      @props.things |> map -> li it
 ```
 
-This made the component much simpler, but we now face a problem - how do we let whoever is interested know that the user changed the query?
+This made the route component much simpler, but we now face a new problem - how do we notify whoever is interested that the user changed the query?
 
-The solution is easy in Reflex. Shared state belongs to the app state. Let’s put both the query and the items there as an initial value in `app.ls`. Initially we want the query to be empty and we put our list of things in as well.
+The solution is easy in Reflex: shared state belongs to the app state. Let’s put both the query and the items there as an initial value in `app.ls`. Initially we want the query to be empty and we put our list of things in as well.
 
 ```livescript
 intial-state =
-  query: ‘’
+  query: ''
   items:
-    * “Hovercraft full of eels”
-      * “Ex-parrot”
-      * “Eggs, beans, bacon and spam”
-      * “Flying circus”
+    * "Hovercraft full of eels"
+    * "Ex-parrot"
+    * "Eggs, beans, bacon and spam"
+    * "Flying circus"
 
 module.exports = reflex.application.create do
   get-initial-state: ->
@@ -226,7 +234,7 @@ Then we need to use that list in our listing route
     items = @props.app-state.get \items
 
     d.div do
-      d.h1 “A list of useful things“
+      d.h1 "A list of useful things"
       list do
         query: query
         items: (items.deref! |> filter matches query.deref!)
@@ -243,8 +251,8 @@ You might be thinking “so now we’ve made a couple things much more complicat
     d.div do
       d.form do
         d.input do
-          type: ‘search’
-          placeholder: ‘Search things’
+          type: 'search'
+          placeholder: 'Search things'
           value: @props.query.deref!
           on-change: (e) ~>
             @props.query.update -> e.target.value
@@ -268,9 +276,9 @@ Let’s finally add the list of recent queries. First we need to keep track of t
     d.div do
       if @props.query
         d.form do
-              d.input do
-              type: ‘search’
-            placeholder: ‘Search things’
+          d.input do
+            type: 'search'
+            placeholder: 'Search things'
             value: @props.query.deref!
             on-keyup: (e) ~>
               return unless e.name is ‘EnterKey` # CHECK THIS
@@ -290,12 +298,12 @@ The initial state needs to contain an empty list of recent queries to have somew
 
 ```livescript
 intial-state =
-  query: ‘’
+  query: ''
   items:
-    * “Hovercraft full of eels”
-      * “Ex-parrot”
-      * “Eggs, beans, bacon and spam”
-      * “Flying circus”
+    * "Hovercraft full of eels"
+      * "Ex-parrot"
+      * "Eggs, beans, bacon and spam"
+      * "Flying circus"
   queries: []
 
 module.exports = reflex.application.create do
@@ -312,12 +320,12 @@ Rendering the recent queries is as simple as adding another list component to ou
     queries = @props.app-state.get \queries
 
     d.div do
-      d.h1 “A list of useful things“
+      d.h1 "A list of useful things"
       list do
         query: query
         queries: queries
         items: (things.deref! |> filter matches query.deref!)
-      d.h2 “Recent searches
+      d.h2 "Recent searches"
       list do
         items: queries.deref! |> take 5
 ```
