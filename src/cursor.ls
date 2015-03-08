@@ -6,6 +6,9 @@ require! 'bluebird'
 UpdateTransaction = !->
   @promises = []
 
+is-promise = ->
+  it and it.then and typeof! it.then is 'Function'
+
 # wraps array in a cursor
 array-cursor = (root, data, len, path) ->
   array = [0 til len] |> map ->
@@ -41,7 +44,7 @@ notify-listeners = (listeners, transactions, path, new-data) !->
 
       maybe-promise = it(payload)
 
-      if maybe-promise and maybe-promise.then
+      if is-promise maybe-promise
         transactions |> each -> it.promises.push maybe-promise
 
 flush-updates = (updates) ->
