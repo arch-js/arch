@@ -30,7 +30,6 @@ exports.bundle = (paths, watch, changed) ->
       root: path.join paths.reflex.abs, 'node_modules'
       fallback: path.join paths.app.abs, 'node_modules'
 
-
     plugins: [ new webpack.DefinePlugin 'process.env': browser-env ]
 
     module:
@@ -83,8 +82,8 @@ exports.bundle = (paths, watch, changed) ->
       filename: 'app.js'
       content-base: path.join paths.app.abs, paths.public
       hot: true # Enable hot loading
-      quiet: true
-      no-info: true
+      quiet: false
+      no-info: false
       watch-delay: 200
 
     server.listen 3001, 'localhost'
