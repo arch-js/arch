@@ -30,7 +30,7 @@ $ npm link
 
 This should give you the `reflex` command. Finally, you can start a Reflex application using it
 
-``
+```
 $ mkdir my-reflex-app
 $ cd my-reflex-app
 $ reflex init
