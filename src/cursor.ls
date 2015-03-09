@@ -1,5 +1,13 @@
 Immutable = require 'immutable'
+require! 'bluebird'
+
 {map, take, reverse, each, join, split, is-type, empty} = require 'prelude-ls'
+
+UpdateTransaction = !->
+  @promises = []
+
+is-promise = ->
+  it and it.then and typeof! it.then is 'Function'
 
 # wraps array in a cursor
 array-cursor = (root, data, len, path) ->
@@ -10,6 +18,7 @@ array-cursor = (root, data, len, path) ->
   array._root = root or this
   array._data = if data then Immutable.fromJS(data) else null
   array._listeners = {}
+  array._transactions = []
   array._updates = []
 
   # Support all the cursor API
@@ -20,7 +29,7 @@ array-cursor = (root, data, len, path) ->
 object-cursor = (root, data, path) ->
   new Cursor root, data, path
 
-notify-listeners = (listeners, path, new-data) !->
+notify-listeners = (listeners, transactions, path, new-data) !->
   paths = [0 to path.length]
   |> map (-> path |> take it)
   |> reverse
@@ -33,7 +42,10 @@ notify-listeners = (listeners, path, new-data) !->
       payload = new-data.get-in path
       payload .= toJS! if payload.toJS
 
-      it(payload)
+      maybe-promise = it(payload)
+
+      if is-promise maybe-promise
+        transactions |> each -> it.promises.push maybe-promise
 
 flush-updates = (updates) ->
   while updates.length > 0
@@ -60,13 +72,14 @@ perform-update = (cursor, update) ->
   cursor._root._swap new-data
 
   # Notify about the change
-  notify-listeners cursor._root._listeners, cursor._path, new-data
+  notify-listeners cursor._root._listeners, cursor._root._transactions, cursor._path, new-data
 
 Cursor = (root, data, path) ->
   @_path = path
   @_root = root or this
   @_data = if data then Immutable.fromJS(data) else null
   @_listeners = {}
+  @_transactions = []
   @_updates = []
 
   this
@@ -96,7 +109,7 @@ Cursor.prototype.update = (cbk) ->
   updates.push [this, cbk]
   return unless updates.length < 2
 
-  while updates.length > 0
+  until empty updates
     [cursor, update] = updates[0]
     perform-update cursor, update
 
@@ -111,6 +124,20 @@ Cursor.prototype.on-change = (cbk) ->
   key = join '.', @_path
   @_root._listeners[key] ||= []
   @_root._listeners[key].push cbk
+
+Cursor.prototype.start-transaction = ->
+  t = new UpdateTransaction!
+  @_root._transactions.push t
+
+  t
+
+Cursor.prototype.end-transaction = (transaction) ->
+  i = @_root._transactions.index-of transaction
+  throw new Error "Transaction isn't running" if i < 0
+
+  return bluebird.resolve! if empty transaction.promises
+
+  bluebird.all transaction.promises
 
 module.exports = (data) ->
   if is-type 'Array', data
