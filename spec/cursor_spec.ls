@@ -12,6 +12,10 @@ raw-data =
         name: "Tom"
       * animal: "dog"
         name: "Huckleberry"
+  falsey:
+    string: ""
+    number: 0
+    boolean: false
 
 data = cursor raw-data
 
@@ -44,6 +48,22 @@ describe "cursor" (_) ->
 
       expect names.0 .toBe "Tom"
       expect names.1 .toBe "Huckleberry"
+
+  describe "with falsey values" (_) ->
+    it "allows a falsey string" ->
+      str = data.get \falsey.string
+      expect str .not.to-be undefined
+      expect str.deref .not.to-be undefined
+
+    it "allows a falsey number" ->
+      num = data.get \falsey.number
+      expect num .not.to-be undefined
+      expect num.deref .not.to-be undefined
+
+    it "allows a false boolean" ->
+      bool = data.get \falsey.boolean
+      expect bool .not.to-be undefined
+      expect bool.deref .not.to-be undefined
 
   describe "raw access" (_) ->
     it "returns raw data" ->
