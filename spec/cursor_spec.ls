@@ -54,16 +54,19 @@ describe "cursor" (_) ->
       str = data.get \falsey.string
       expect str .not.to-be undefined
       expect str.deref .not.to-be undefined
+      expect str.deref! .to-equal ''
 
     it "allows a falsey number" ->
       num = data.get \falsey.number
       expect num .not.to-be undefined
       expect num.deref .not.to-be undefined
+      expect num.deref! .to-equal 0
 
     it "allows a false boolean" ->
       bool = data.get \falsey.boolean
       expect bool .not.to-be undefined
       expect bool.deref .not.to-be undefined
+      expect bool.deref! .to-equal false
 
   describe "raw access" (_) ->
     it "returns raw data" ->
