@@ -88,7 +88,7 @@ Cursor.prototype.get = (path) ->
   path = @_path ++ (split '.', path)
   val = @_root._data.get-in path
 
-  return null unless val
+  return null if typeof val is 'undefined'
 
   # if the resulting object is a list, return array-cursor
   if val instanceof Immutable.List
