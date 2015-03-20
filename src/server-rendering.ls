@@ -18,7 +18,7 @@ configure-react = ->
   ReactUpdates.injection.injectReconcileTransaction ReactServerRenderingTransaction
   ReactUpdates.injection.injectBatchingStrategy ReactDefaultBatchingStrategy
 
-render-tree = (element) ->
+render-tree = (element, depth = 0) ->
   # use react server rendering transaction to get the markup tree safely
   transaction = ReactServerRenderingTransaction.get-pooled true
 
@@ -28,7 +28,7 @@ render-tree = (element) ->
 
   try
     transaction.perform ->
-      instance.mount-component "canBeAynthingWhee", transaction, 0
+      instance.mount-component "canBeAynthingWhee", transaction, depth
   finally
     ReactServerRenderingTransaction.release(transaction);
 
@@ -50,6 +50,13 @@ extract-elements = (path, post-data, instance) ->
     return (inputs |> any -> it.props.name in input-names)
 
   [form, inputs]
+
+extract-route = (instance) ->
+  # FIXME find just the first
+  routes = test-utils.find-all-in-rendered-tree instance, ->
+    return it.get-layout-template and typeof! it.get-layout-template is 'Function'
+
+  routes[0]
 
 # FIXME this is obviously not enough of a fake event, but it will do for now
 # report ALL issues you find with this
@@ -100,6 +107,18 @@ process-form = (root-element, initial-state, post-data, path) ->
 
   null
 
+route-metadata = (root-element, initial-state) ->
+  configure-react!
+
+  instance = render-tree root-element, 1
+  route = extract-route instance
+
+  title = if route.get-title then that! else ""
+
+  # collect all the metadata
+  title: title
+  layout: route.get-layout-template! # FIXME default layout?
+
 reset-redirect = ->
   redirect-location := null
 
@@ -107,5 +126,6 @@ redirect = (path) ->
   redirect-location := path
 
 module.exports =
+  route-metadata: route-metadata
   process-form: process-form
   redirect: redirect

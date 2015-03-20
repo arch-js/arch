@@ -62,13 +62,16 @@ module.exports =
   start: (configs, root-component, app-state) ->
     configs |> each (config) ->
       page.callbacks.push config.route.middleware (ctx) ->
+        # FIXME extract the following into a separate function
         context = context-from-url(ctx.canonical-path, ctx.params)
 
         root-component.set-state component: config.component, context: context
+
+        # FIXME update document title based on the config.component
         window.scroll-to 0, 0
 
         # call the route callback
-        config.init(app-state, context, ->) if config.init
+        config.init(app-state, context) if config.init
 
     # only start client-side routing if pushState is available
     page.start! if (typeof window.history.replace-state isnt 'undefined')

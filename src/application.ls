@@ -52,7 +52,8 @@ module.exports =
 
         app-state.end-transaction transaction
         .then ->
-          [app-state.deref!, React.render-to-string root-element]
+          meta = server-rendering.route-metadata root-element, app-state
+          [meta, app-state.deref!, React.render-to-string root-element]
 
       # process a form from a particular route and render to string
       # returns a promise of [state, body, location]
@@ -71,7 +72,8 @@ module.exports =
 
         app-state.end-transaction transaction
         .then ->
+          meta = server-rendering.route-metadata root-element, app-state
           body = unless location then React.render-to-string root-element else null
 
-          [app-state.deref!, body, location]
+          [meta, app-state.deref!, body, location]
 

@@ -1,9 +1,6 @@
 require! <[ express fs path jade bluebird body-parser ./bundler LiveScript babel/register ]>
 {each, values, filter, find, flatten, map, first} = require 'prelude-ls'
 
-__template = jade.compile-file (path.join __dirname, 'index.jade')
-read-file = bluebird.promisify fs.read-file
-
 defaults =
   environment: process.env.NODE_ENV or 'development'
   port: 3000
@@ -11,32 +8,24 @@ defaults =
     app:
       abs: path.resolve '.'
       rel: path.relative __dirname, path.resolve '.'
-    layouts: 'app/layouts'
     reflex:
       abs: path.dirname require.resolve "../package.json"
       rel: path.relative (path.resolve '.'), (path.dirname require.resolve "../package.json")
     public: 'dist'
 
-module.exports = (options=defaults) ->
+module.exports = (options) ->
+  options = ^^defaults import options
   app = options.app or require options.paths.app.rel
 
   get = (req, res) ->
-    console.log "GET", req.original-url
     reflex-get app, req.original-url, options
-    .then ->
-      res.send it
+    .spread (status, headers, body) ->
+      res.status status .set headers .send body
 
   post = (req, res) ->
-    post-data = req.body
-    console.log "POST", req.original-url, post-data
-
-    reflex-post app, req.original-url, post-data, options
+    reflex-post app, req.original-url, req.body, options
     .spread (status, headers, body) ->
-      console.log "#status", headers
-      res
-        .status status
-        .set headers
-        .send body
+      res.status status .set headers .send body
 
   start: (cb) ->
     server = express!
@@ -75,33 +64,30 @@ module.exports = (options=defaults) ->
   get: reflex-get
   post: reflex-post
   render: layout-render
-  interp: reflex-interp
   /* end-test-exports */
 
 reflex-get = (app, url, options) ->
+  console.log "GET", url
   app.render url
-  .spread (app-state, body) ->
-    layout-render path.join(options.paths.layouts, 'default.html'), body, app-state, options
+  .spread (meta, app-state, body) ->
+    html = layout-render meta, body, app-state, options
+    [200, {}, html]
 
 reflex-post = (app, url, post-data, options) ->
+  console.log "POST", req.original-url, req.body
   app.process-form url, post-data
-  .spread (app-state, body, location) ->
-    if body
-      layout-render path.join(options.paths.layouts, 'default.html'), body, app-state, options
-      .then ->
-        [200, {}, it]
-    else
-      # FIXME build a full URL for location to comply with HTTP
-      bluebird.resolve [302, 'Location': location, ""];
+  .spread (meta, app-state, body, location) ->
+    # FIXME build a full URL for location to comply with HTTP
+    return [302, 'Location': location, ""] unless body
 
-reflex-interp = (template, body) ->
-  template.to-string!.replace '{reflex-body}', body
+    html = layout-render meta, body, app-state, options
+    [200, {}, html]
 
-layout-render = (path, body, app-state, options) ->
-  read-file path
-  .then (template) ->
-    bundle-path = if options.environment is 'development' then "http://localhost:3001/app.js" else "/#{options.paths.public}/app.js"
-    reflex-interp template,
-      __template public: options.paths.public, bundle: bundle-path, body: body, state: app-state
-  .error !->
-    throw new Error 'Template not found'
+__template = jade.compile-file (path.join __dirname, 'index.jade')
+
+layout-render = (meta, body, app-state, options) ->
+  bundle-path = if options.environment is 'development' then "http://localhost:3001/app.js" else "/#{options.paths.public}/app.js"
+  reflex-body = __template public: options.paths.public, bundle: bundle-path, body: body, state: app-state
+
+  {layout, title} = meta
+  layout body: reflex-body, title: title

@@ -6,23 +6,40 @@ require! {
 }
 
 describe "server" (_) ->
-  describe "template assignment" (_) ->
-    var support-templates, app, inst
+  describe "layout rendering" (_) ->
+    var app, inst, support-templates
 
     before-each !->
+      meta =
+        layout: -> "Test #it test"
+        title: 'Hello'
+
       support-templates := "#{__dirname}/support/fixtures"
-      app := render: jasmine.create-spy 'spy' .and.call-fake (url) -> bluebird.resolve ['app-state', 'body']
+      app := render: jasmine.create-spy 'spy' .and.call-fake (url) -> bluebird.resolve [meta, 'app-state', 'body']
       inst := server app: app
 
-    it "calls the method that renders a route to string" !->
-      inst.get app, 'url', paths: { layouts: support-templates, public: 'dist' }
+    it "passes through to application's server rendering" !->
+      inst.get app, 'url', paths: { public: 'dist' }
       # Test that the method that renders a route to a string has been called
       # with a URL an anonymous function.
       expect app.render .to-have-been-called-with 'url'
 
-    it "throws an error if the specified template cannot be found" (done) !->
+    it "renders the into a provided layout" (done) !->
+      inst.get app, 'app-state', paths: { layouts: support-templates, public: 'dist' }
+      .spread (status, headers, body) ->
+        expect body .to-match /^Test /
+        expect body .to-match /\ test$/
+        done!
+
+    it "throws an error if a component returns an empty layout" (done) !->
+      meta =
+        layout: "Test #it test"
+        title: 'Hello'
+
+      bad-app = render: jasmine.create-spy 'spy' .and.call-fake (url) -> bluebird.resolve [meta, 'app-state', 'body']
+
       var failed
-      inst.get app, 'url', paths: { layouts: 'non-existant/path', public: 'dist' }
+      inst.get bad-app, 'url'
       .then (output) !->
         failed := false
       .catch (e) ->
@@ -31,9 +48,10 @@ describe "server" (_) ->
         expect failed .to-be true
         done!
 
-    it "interpolates the instantiation partial with the author defined template" (done) !->
-      inst.get app, 'app-state', paths: { layouts: support-templates, public: 'dist' }
-      .then (template) !->
-        fs.read-file path.join(support-templates, 'default-reference.html'), (err, template-reference) !->
-          expect template .to-equal template-reference.to-string!
-          done!
+  describe "form processing" (_) ->
+    it "passes through to application's form-processing"
+
+    it "renders into a provided layout"
+
+    it "handles a redirect as a 302"
+
