@@ -90,14 +90,6 @@ Reflex cursors allow anyone to plug in any data processing necessary by register
 
 Reflex itself observers the root cursor of the app state and re-renders the root UI component whenever it changes. This implicit rendering means you don’t need to trigger, distribute and handle user events in your application manually (e.g. with a Flux style dispatcher). A user action *always* results in a state change which should either render the UI again or trigger some processing through observation.
 
-### Observer “ping pong”
-
-A typical pattern for state observers is to have a kind of dialog with the UI components. User actions are handled by the component, which in turn change the app state. The change is registered by one or more observers (e.g. a search backend or a persistence provider) and the result of their work again updates the app state. Finally, that update triggers a redraw of the UI, showing the results to the user.
-
-A nice benefit of this approach is that the stages of the processing are explicit and you can show the progress of a long running operation to the user (e.g. have a ‘loading’ flag used to trigger a fetch from a backend and display or hide a loading indicator at the same time).
-
-Reflex forces you to make even transient states explicit, which is usually beneficial to your application design.
-
 ## Cursor API
 
 The cursors have a very simple API. The fundamental operations with a cursor are a creation, focusing, dereferencing, updating and observing.

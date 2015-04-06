@@ -45,8 +45,20 @@ increment-age: (age-cursor) ->
 
 The main difference between Reflex and Om cursor implementation (and most others) is that Reflex cursors are observable on any key path. Observers are notified of any changes happening to the key path they are watching and all its children.
 
+### Observability
+
 This is immensely important for the application architecture - the application state acts as a central column that modules of your application are attached to. On one side, there is a tree of components reading the application state data and displaying it accordingly, on the other side there are various modules observing the state changes, performing computations and updating the state. Reflex itself is watching the root application state cursor and re-renders the relevant React components.
 
 The running application is a dialog of the UI and the state observers taking turns updating the state. A user event in the UI causes either a component state update or an application state update. In the latter case one (or more) observers pick up the change and perform what they are built to do. When their job is done, they put the results on the app state, which causes the UI to re-render.
 
 This architecture achieves a very loose coupling between the front-end and the back-end part of the application (“vertical coupling”) as well as between the components of the UI across the hierarchy (“horizontal coupling”). Each component only needs to understand what its layer of the app state looks like and potentially some details of the layers above and below. At the same time it allows things like multiple back-end adapters racing to perform the same task using different ways, or easy back-end swapping even at run-time. Even tasks as simple as form validation can be extracted from the components and become state observers. The UI components themselves stay focused on interfacing with the user and performing simple state changes.
+
+### Observer “ping pong”
+
+A typical pattern for state observers is to have a kind of dialog with the UI components. User actions are handled by the component, which in turn change the app state. The change is registered by one or more observers (e.g. a search backend or a persistence provider) and the result of their work again updates the app state. Finally, that update triggers a redraw of the UI, showing the results to the user.
+
+A nice benefit of this approach is that the stages of the processing are explicit and you can show the progress of a long running operation to the user (e.g. have a ‘loading’ flag used to trigger a fetch from a backend and display or hide a loading indicator at the same time).
+
+Reflex forces you to make even transient states explicit, which is usually beneficial to your application design.
+
+TODO: example for interfacing with a RESTful API
