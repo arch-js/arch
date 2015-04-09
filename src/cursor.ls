@@ -88,8 +88,6 @@ Cursor.prototype.get = (path) ->
   path = @_path ++ (split '.', path)
   val = @_root._data.get-in path
 
-  return null if typeof val is 'undefined'
-
   # if the resulting object is a list, return array-cursor
   if val instanceof Immutable.List
     array-cursor @_root, null, val.size, path
@@ -98,6 +96,7 @@ Cursor.prototype.get = (path) ->
 
 Cursor.prototype.deref = ->
   data = this.raw!
+  return null if typeof data is 'undefined'
 
   if data and data.toJS then data.toJS! else data
 
