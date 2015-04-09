@@ -18,11 +18,13 @@ module.exports = (options) ->
   app = options.app or require options.paths.app.rel
 
   get = (req, res) ->
+    console.log "GET", req.original-url
     reflex-get app, req.original-url, options
     .spread (status, headers, body) ->
       res.status status .set headers .send body
 
   post = (req, res) ->
+    console.log "POST", req.original-url, req.body
     reflex-post app, req.original-url, req.body, options
     .spread (status, headers, body) ->
       res.status status .set headers .send body
@@ -67,14 +69,12 @@ module.exports = (options) ->
   /* end-test-exports */
 
 reflex-get = (app, url, options) ->
-  console.log "GET", url
   app.render url
   .spread (meta, app-state, body) ->
     html = layout-render meta, body, app-state, options
     [200, {}, html]
 
 reflex-post = (app, url, post-data, options) ->
-  console.log "POST", req.original-url, req.body
   app.process-form url, post-data
   .spread (meta, app-state, body, location) ->
     # FIXME build a full URL for location to comply with HTTP
