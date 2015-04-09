@@ -1,15 +1,13 @@
+dom-utils = require './virtual-dom-utils'
 {difference, filter, first, keys, Obj} = require 'prelude-ls'
 
 ReactServerRenderingTransaction = require 'react/lib/ReactServerRenderingTransaction'
 ReactDefaultBatchingStrategy = require 'react/lib/ReactDefaultBatchingStrategy'
 ReactUpdates = require 'react/lib/ReactUpdates'
 
-test-utils = React.addons.TestUtils
-
-# FIXME is there a way to do this without state
+# FIXME is there a way to do this without state?
 # the form processing part is all synchronous, so
 # we should be ok, but it's still nasty
-
 redirect-location = null
 
 configure-react = ->
@@ -34,30 +32,6 @@ render-tree = (element, depth = 0) ->
 
   instance
 
-extract-elements = (path, post-data, instance) ->
-  input-names = keys post-data
-
-  forms = test-utils.find-all-in-rendered-tree instance, ->
-    return it._tag is 'form'
-
-  inputs = []
-  form = forms
-  |> filter (.props.action is path)
-  |> find (form) ->
-    inputs := test-utils.find-all-in-rendered-tree form, ->
-      return it._tag in ['input', 'textarea', 'select']
-
-    return (inputs |> any -> it.props.name in input-names)
-
-  [form, inputs]
-
-extract-route = (instance) ->
-  # FIXME find just the first
-  routes = test-utils.find-all-in-rendered-tree instance, ->
-    return it.get-layout-template and typeof! it.get-layout-template is 'Function'
-
-  routes[0]
-
 # FIXME this is obviously not enough of a fake event, but it will do for now
 # report ALL issues you find with this
 fake-event = (element, opts = {}) ->
@@ -79,6 +53,8 @@ submit-form = (form) ->
   form.props.on-submit fake-event form
   ReactUpdates.flushBatchedUpdates!
 
+# Public
+
 # Processes a form server-side, returns a redirect location or null
 # FIXME should we deal with the redirect in application.ls?
 process-form = (root-element, initial-state, post-data, path) ->
@@ -95,7 +71,8 @@ process-form = (root-element, initial-state, post-data, path) ->
 
   instance = render-tree root-element
 
-  [form, inputs] = extract-elements path, post-data, instance
+  input-names = keys post-data
+  [form, inputs] = dom-utils.form-elements instance, path, input-names
 
   # trigger handlers
   change-inputs inputs, post-data
@@ -111,13 +88,7 @@ route-metadata = (root-element, initial-state) ->
   configure-react!
 
   instance = render-tree root-element, 1
-  route = extract-route instance
-
-  title = if route.get-title then that! else ""
-
-  # collect all the metadata
-  title: title
-  layout: route.get-layout-template! # FIXME default layout?
+  dom-utils.route-metadata instance
 
 reset-redirect = ->
   redirect-location := null

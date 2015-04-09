@@ -1,4 +1,8 @@
-require! <[ page ]>
+require! {
+  './virtual-dom-utils': 'dom-utils'
+  page
+}
+
 {split-at, drop, split, map, pairs-to-obj, each, find} = require 'prelude-ls'
 
 # Split URL into path, query string and hash
@@ -65,10 +69,12 @@ module.exports =
         # FIXME extract the following into a separate function
         context = context-from-url(ctx.canonical-path, ctx.params)
 
-        root-component.set-state component: config.component, context: context
+        root-component.set-state component: config.component, context: context, ->
+          # FIXME update document title based on the config.component
+          {title} = dom-utils.route-metadata root-component
 
-        # FIXME update document title based on the config.component
-        window.scroll-to 0, 0
+          document.title = title
+          window.scroll-to 0, 0
 
         # call the route callback
         config.init(app-state, context) if config.init
