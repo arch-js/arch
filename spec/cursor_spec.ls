@@ -32,10 +32,13 @@ describe "cursor" (_) ->
 
       expect data.deref!.person.first_name .toBe "John"
 
-    it "returns undefined if the path doesn't exist" ->
+    it "returns an object cursor if the path doesn't exist" ->
       foo = data.get \this.doesnt.exist.at.all
 
-      expect foo .to-be null
+      expect foo .not.to-be null
+      expect foo.deref .not.to-be null
+
+      expect foo.deref! .to-be null
 
   describe "to array" (_) ->
     it "derefs a array item" ->
@@ -123,6 +126,20 @@ describe "cursor" (_) ->
 
       expect (pets.get \0.name .deref!) .toBe "Professor Catus"
       expect (pets.get \1.name .deref!) .toBe "Baron Woofson"
+
+    it "allows updates on paths that previously didn't exist" ->
+      data = cursor raw-data
+      new-thing = data.get \person.weight
+      new-things = data.get \person.flaws
+
+      new-thing.update -> 80
+      new-things.update -> ['rude', 'lazy']
+
+      expect new-thing.deref! .to-be 80
+      expect (data.get \person.weight .deref!) .to-be 80
+
+      expect new-things.deref!.0 .to-be 'rude'
+      expect (data.get \person.flaws.1 .deref!) .to-be 'lazy'
 
   describe "observation" (_) ->
     it "notifies on change to a path" ->
