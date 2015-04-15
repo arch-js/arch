@@ -1,7 +1,4 @@
-require! {
-  './virtual-dom-utils': 'dom-utils'
-  page
-}
+require! 'page'
 
 {split-at, drop, split, map, pairs-to-obj, each, find} = require 'prelude-ls'
 
@@ -74,13 +71,6 @@ module.exports =
 
   # Public: start the routing
   start: (route-set, app-state) ->
-    # FIXME do the following in a 'app-state.route' observer
-    # removing the need for root-component to be an argument of this
-    #
-    # {title} = dom-utils.route-metadata root-component
-    # document.title = title
-    # window.scroll-to 0, 0
-
     route-set.routes |> each (route) ->
       page.callbacks.push route.route.middleware (ctx) ->
         context = context-from-url(ctx.canonical-path, route, ctx.params)
