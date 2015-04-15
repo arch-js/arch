@@ -31,6 +31,7 @@ parse-query = (query) ->
     [key, decodeURIComponent(value)]
   |> pairs-to-obj
 
+# Get a unique key for a component from a route definition
 component-id = (route) ->
   route.pattern
 
@@ -91,6 +92,6 @@ module.exports =
     context-from-url url, route, params
 
   # Public: lookup a component for a route in the route set
+  # this is a function on routes for forward compatibility
   get-component: (route-set, component-id) -->
-    # this is a function on routes for forward compatibility
     route-set.components[component-id]

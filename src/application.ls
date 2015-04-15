@@ -1,4 +1,4 @@
-require! <[ bluebird ./routes ./cursor ./dom ./server-rendering ]>
+require! <[ bluebird ./cursor ./dom ./routes ./server-rendering ]>
 require! './virtual-dom-utils': 'dom-utils'
 
 {span} = dom
@@ -41,27 +41,36 @@ module.exports =
   # define an application instance
   create: (app) ->
     do
-      # start the application
+      # start the application on the client
       start: ->
-        path = (location.pathname + location.search + location.hash)
-        root-dom-node = document.get-element-by-id "application"
-        server-state = JSON.parse root-dom-node.get-attribute 'data-reflex-app-state'
-
         route-set = app.routes!
-        context = routes.resolve route-set, path
+        path = (location.pathname + location.search + location.hash)
+
+        root-dom-node = document.get-element-by-id "application"
+
+        # Initialise app state
+
+        server-state = JSON.parse root-dom-node.get-attribute 'data-reflex-app-state'
 
         app-state = if server-state
           cursor server-state
         else
-          init-app-state app.get-initial-state!, context
+          init-app-state app.get-initial-state!, routes.resolve(route-set, path)
+
+        # Boot the app
 
         app.start app-state
+
+        # Mount the root component
 
         root-element = app-component app-state: app-state, routes: route-set
         root = React.render root-element, root-dom-node
 
-        # re-render on app-state change
+        # Whenever app state changes re-render
+
         app-state.on-change -> root.set-state app-state: app-state
+
+        # Set up SPA navigation
 
         observe-page-change root, app-state
         routes.start app.routes!, app-state
@@ -70,12 +79,13 @@ module.exports =
       # returns a promise of [state, body]
       render: (path) ->
         route-set = app.routes!
-        context = routes.resolve route-set, path
-        app-state = init-app-state app.get-initial-state!, context
+        app-state = init-app-state app.get-initial-state!, routes.resolve(route-set, path)
 
         transaction = app-state.start-transaction!
-        app.start app-state
 
+        # Boot the app
+
+        app.start app-state
         root-element = app-component app-state: app-state, routes: route-set
 
         app-state.end-transaction transaction
@@ -87,15 +97,19 @@ module.exports =
       # returns a promise of [state, body, location]
       process-form: (path, post-data) ->
         route-set = app.routes!
-        context = routes.resolve route-set, path
-        app-state = init-app-state app.get-initial-state!, context
+        app-state = init-app-state app.get-initial-state!, routes.resolve(route-set, path)
 
         transaction = app-state.start-transaction!
-        app.start app-state
 
+        # Boot the app
+
+        app.start app-state
         root-element = app-component app-state: app-state, routes: route-set
 
+        # Process the form
+
         location = server-rendering.process-form root-element, app-state, post-data, path
+
         app-state.end-transaction transaction
         .then ->
           meta = server-rendering.route-metadata root-element, app-state
