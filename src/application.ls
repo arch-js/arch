@@ -5,50 +5,62 @@ app-component = React.create-factory React.create-class do
   display-name: 'reflex-application'
 
   get-initial-state: ->
-    component: @props.component
-    context: @props.context
-    app-state: @props.initial-state
+    app-state: @props.app-state
+
+  lookup-component: ->
+    route = @state.app-state.get \route .deref!
+    routes.get-component @props.routes, route.component-id
 
   render: ->
-    if @state.component
-      React.create-element that, context: @state.context, app-state: @state.app-state
+    component = @lookup-component!
+    if component
+      React.create-element that, app-state: @state.app-state
     else
+      # FIXME make this user editable
       span "Page not found."
+
+init-app-state = (initial-state, route-context) ->
+  cursor state: initial-state, route: route-context
 
 module.exports =
   # define an application instance
-  create: (config) ->
+  create: (app) ->
     do
       # start the application
       start: ->
         path = (location.pathname + location.search + location.hash)
         root-dom-node = document.get-element-by-id "application"
-
         server-state = JSON.parse root-dom-node.get-attribute 'data-reflex-app-state'
-        initial-state = cursor (server-state or config.get-initial-state!)
 
-        [route-component, context, _] = routes.resolve path, config.routes!
-        root-element = app-component initial-state: initial-state, component: route-component, context: context
+        route-set = app.routes!
+        context = routes.resolve route-set, path
 
-        config.start initial-state
+        app-state = if server-state
+          cursor server-state
+        else
+          init-app-state app.get-initial-state!, context
 
+        app.start app-state
+
+        root-element = app-component app-state: app-state, routes: route-set
         root = React.render root-element, root-dom-node
 
-        initial-state.on-change -> root.set-state app-state: initial-state
-        routes.start config.routes!, root, initial-state
+        # re-render on app-state change
+        app-state.on-change -> root.set-state app-state: app-state
+        routes.start app.routes!, app-state
 
       # render a particular route to string
       # returns a promise of [state, body]
       render: (path) ->
-        app-state = cursor config.get-initial-state!
+        route-set = app.routes!
 
-        [route-component, context, route-init] = routes.resolve path, config.routes!
-        root-element = app-component initial-state: app-state, component: route-component, context: context
+        context = routes.resolve route-set, path
+        app-state = init-app-state app.get-initial-state!, context
 
         transaction = app-state.start-transaction!
+        app.start app-state
 
-        config.start app-state
-        route-init app-state, context if route-init
+        root-element = app-component app-state: app-state, routes: route-set
 
         app-state.end-transaction transaction
         .then ->
@@ -58,16 +70,14 @@ module.exports =
       # process a form from a particular route and render to string
       # returns a promise of [state, body, location]
       process-form: (path, post-data) ->
-        app-state = cursor config.get-initial-state!
+        route-set = app.routes!
 
-        [route-component, context, route-init] = routes.resolve path, config.routes!
-        root-element = app-component initial-state: app-state, component: route-component, context: context
-
+        context = routes.resolve route-set, path
+        app-state = init-app-state app.get-initial-state!, context
         transaction = app-state.start-transaction!
+        app.start app-state
 
-        config.start app-state
-        route-init app-state, context if route-init
-
+        root-element = app-component app-state: app-state, routes: route-set
         location = server-rendering.process-form root-element, app-state, post-data, path
 
         app-state.end-transaction transaction
