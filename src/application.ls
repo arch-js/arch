@@ -1,54 +1,92 @@
-require! <[ bluebird ./routes ./cursor ./dom ./server-rendering ]>
+require! <[ bluebird ./cursor ./dom ./routes ./server-rendering ]>
+require! './virtual-dom-utils': 'dom-utils'
+
 {span} = dom
 
 app-component = React.create-factory React.create-class do
   display-name: 'reflex-application'
 
   get-initial-state: ->
-    component: @props.component
-    context: @props.context
-    app-state: @props.initial-state
+    app-state: @props.app-state
+
+  lookup-component: ->
+    route = @state.app-state.get \route .deref!
+    routes.get-component @props.routes, route.component-id
 
   render: ->
-    if @state.component
-      React.create-element that, context: @state.context, app-state: @state.app-state
+    component = @lookup-component!
+    if component
+      React.create-element that, app-state: @state.app-state
     else
+      # FIXME make this user editable
       span "Page not found."
+
+init-app-state = (initial-state, route-context) ->
+  cursor state: initial-state, route: route-context
+
+observe-page-change = (root-tree, app-state) ->
+  app-state.get \route .on-change ->
+    # FIXME this is clearly a hack. We should figure out
+    # how to do this when the rendering is done
+    # which is after the set-state on the root component
+    # is done.
+    set-timeout ->
+      {title} = dom-utils.route-metadata root-tree
+
+      document.title = title
+      window.scroll-to 0, 0
+    , 0
 
 module.exports =
   # define an application instance
-  create: (config) ->
+  create: (app) ->
     do
-      # start the application
+      # start the application on the client
       start: ->
+        route-set = app.routes!
         path = (location.pathname + location.search + location.hash)
+
         root-dom-node = document.get-element-by-id "application"
 
+        # Initialise app state
+
         server-state = JSON.parse root-dom-node.get-attribute 'data-reflex-app-state'
-        initial-state = cursor (server-state or config.get-initial-state!)
 
-        [route-component, context, _] = routes.resolve path, config.routes!
-        root-element = app-component initial-state: initial-state, component: route-component, context: context
+        app-state = if server-state
+          cursor server-state
+        else
+          init-app-state app.get-initial-state!, routes.resolve(route-set, path)
 
-        config.start initial-state
+        # Boot the app
 
+        app.start app-state
+
+        # Mount the root component
+
+        root-element = app-component app-state: app-state, routes: route-set
         root = React.render root-element, root-dom-node
 
-        initial-state.on-change -> root.set-state app-state: initial-state
-        routes.start config.routes!, root, initial-state
+        # Whenever app state changes re-render
+
+        app-state.on-change -> root.set-state app-state: app-state
+
+        # Set up SPA navigation
+
+        observe-page-change root, app-state
+        routes.start app.routes!, app-state
 
       # render a particular route to string
       # returns a promise of [state, body]
       render: (path) ->
-        app-state = cursor config.get-initial-state!
-
-        [route-component, context, route-init] = routes.resolve path, config.routes!
-        root-element = app-component initial-state: app-state, component: route-component, context: context
+        route-set = app.routes!
+        app-state = init-app-state app.get-initial-state!, routes.resolve(route-set, path)
 
         transaction = app-state.start-transaction!
 
-        config.start app-state
-        route-init app-state, context if route-init
+        # Boot the app
+
+        app.start app-state
+        root-element = app-component app-state: app-state, routes: route-set
 
         app-state.end-transaction transaction
         .then ->
@@ -58,15 +96,17 @@ module.exports =
       # process a form from a particular route and render to string
       # returns a promise of [state, body, location]
       process-form: (path, post-data) ->
-        app-state = cursor config.get-initial-state!
-
-        [route-component, context, route-init] = routes.resolve path, config.routes!
-        root-element = app-component initial-state: app-state, component: route-component, context: context
+        route-set = app.routes!
+        app-state = init-app-state app.get-initial-state!, routes.resolve(route-set, path)
 
         transaction = app-state.start-transaction!
 
-        config.start app-state
-        route-init app-state, context if route-init
+        # Boot the app
+
+        app.start app-state
+        root-element = app-component app-state: app-state, routes: route-set
+
+        # Process the form
 
         location = server-rendering.process-form root-element, app-state, post-data, path
 
