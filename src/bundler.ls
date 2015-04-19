@@ -82,7 +82,7 @@ exports.bundle = (paths, watch, changed) ->
       filename: 'app.js'
       content-base: path.join paths.app.abs, paths.public
       hot: true # Enable hot loading
-      quiet: false
+      quiet: true
       no-info: false
       watch-delay: 200
 
