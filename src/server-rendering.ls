@@ -17,7 +17,7 @@ configure-react = ->
   ReactUpdates.injection.injectReconcileTransaction ReactServerRenderingTransaction
   ReactUpdates.injection.injectBatchingStrategy ReactDefaultBatchingStrategy
 
-render-tree = (element, depth = 0) ->
+render-tree = (element) ->
   # use react server rendering transaction to get the markup tree safely
   transaction = ReactServerRenderingTransaction.get-pooled true
 
@@ -26,7 +26,7 @@ render-tree = (element, depth = 0) ->
 
   try
     transaction.perform ->
-      instance.mount-component "canBeAynthingWhee", transaction, depth
+      instance.mount-component "canBeAynthingWhee", transaction, {}
   finally
     ReactServerRenderingTransaction.release(transaction);
 
@@ -89,7 +89,7 @@ process-form = (root-element, initial-state, post-data, path) ->
 route-metadata = (root-element, initial-state) ->
   configure-react!
 
-  instance = render-tree root-element, 1
+  instance = render-tree root-element
   dom-utils.route-metadata instance
 
 reset-redirect = ->

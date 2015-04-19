@@ -8,14 +8,14 @@ extract-route = (tree) ->
 
 form-elements = (tree, path, input-names) ->
   forms = test-utils.find-all-in-rendered-tree tree, ->
-    return it._tag is 'form'
+    return it.tagName is 'FORM'
 
   inputs = []
   form = forms
   |> filter (.props.action is path)
   |> find (form) ->
     inputs := test-utils.find-all-in-rendered-tree form, ->
-      return it._tag in ['input', 'textarea', 'select']
+      return it.tagName in ['INPUT', 'TEXTAREA', 'SELECT']
 
     return (inputs |> any -> it.props.name in input-names)
 
