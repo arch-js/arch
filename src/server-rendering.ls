@@ -3,6 +3,7 @@ dom-utils = require './virtual-dom-utils'
 
 ReactServerRenderingTransaction = require 'react/lib/ReactServerRenderingTransaction'
 ReactDefaultBatchingStrategy = require 'react/lib/ReactDefaultBatchingStrategy'
+instantiateReactComponent = require 'react/lib/instantiateReactComponent'
 ReactUpdates = require 'react/lib/ReactUpdates'
 
 # FIXME is there a way to do this without state?
@@ -21,8 +22,7 @@ render-tree = (element, depth = 0) ->
   transaction = ReactServerRenderingTransaction.get-pooled true
 
   # simplified instantiateReactComponent (normal case for composite component)
-  instance = new element.type element.props
-  instance.construct element
+  instance = instantiateReactComponent element, null
 
   try
     transaction.perform ->
@@ -30,7 +30,9 @@ render-tree = (element, depth = 0) ->
   finally
     ReactServerRenderingTransaction.release(transaction);
 
-  instance
+  # Unwrap the instance. We can always get back through ReactInstanceMap
+  # FIXME this looks weirdly wrong, but I believe there is no other way in 0.13
+  instance._instance
 
 # FIXME this is obviously not enough of a fake event, but it will do for now
 # report ALL issues you find with this
