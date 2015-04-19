@@ -1,42 +1,49 @@
 reflex
 ======
 
-Web application framework for React
+Web application framework for React.
+
+## About
+
+Reflex is a single page web application framework using React as its
+UI layer. Reflex takes a functional style approach with central immutable state
+architecture inspired by [Om](https://github.com/omcljs/om).
+
+Reflex applications are written in [LiveScript](http://livescript.net)
+by default (read more about [the reasoning](docs/07-livescript.md)
+behind the decision), they are fully isomorphic out of the box and
+Reflex comes with it's own Node.js based server, Webpack bundler
+and a CLI to help you get started.
 
 ## Get Started
 
-None of reflex is in npm yet, you need to install all required modules from
-Github and `npm link` them.
-
-This will soon change to use Github dependencies and as soon as we release an 0.1.rc1 and
-submit to npm
-
-Meanwhile, this is the way to get reflex up and running:
+Start by installing the Reflex CLI
 
 ```
-$ git clone https://github.com/redbadger/reflex-cli
-$ git clone https://github.com/redbadger/reflex
-$ git clone https://github.com/redbadger/generator-reflex
+$ npm install -g reflex-cli
 ```
 
-That gets you the three pieces, next we need to link `generator-reflex` and `reflex-cli`
+Then create a directory for your new application and go inside
 
 ```
-$ cd generator-reflex && npm link
-$ cd .. && cd reflex && npm link
-$ cd .. && cd reflex-cli
-$ npm link reflex generator-reflex
-$ npm link
+$ mkdir my-app && cd my-app
 ```
 
-This should give you the `reflex` command. Finally, you can start a Reflex application using it
+You can then generate a new app by running
 
 ```
-$ mkdir my-reflex-app
-$ cd my-reflex-app
-$ reflex init
-$ npm link reflex
-$ reflex s
+reflex init
 ```
 
-And that's it, your app should be running on port 3000 now.
+and following the steps. When done start the application by running
+
+```
+reflex serve
+```
+
+your application is now running on <http://localhost:3000>.
+
+## Documentation
+
+Reflex doesn't have a website yet, but you can [read the
+documentation](docs/) (which is mostly complete)
