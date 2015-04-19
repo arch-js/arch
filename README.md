@@ -23,8 +23,9 @@ That gets you the three pieces, next we need to link `generator-reflex` and `ref
 
 ```
 $ cd generator-reflex && npm link
-$ cd .. && cd reflex-cli
-$ npm link generator-reflex
+$ cd .. && cd reflex && npm link
+$ cd .. && cd reflex-cli
+$ npm link reflex generator-reflex
 $ npm link
 ```
 
