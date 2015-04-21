@@ -4,7 +4,7 @@ require! './virtual-dom-utils': 'dom-utils'
 {span} = dom
 
 app-component = React.create-factory React.create-class do
-  display-name: 'reflex-application'
+  display-name: 'arch-application'
 
   get-initial-state: ->
     app-state: @props.app-state
@@ -50,7 +50,7 @@ module.exports =
 
         # Initialise app state
 
-        server-state = JSON.parse root-dom-node.get-attribute 'data-reflex-app-state'
+        server-state = JSON.parse root-dom-node.get-attribute 'data-arch-app-state'
 
         app-state = if server-state
           cursor server-state

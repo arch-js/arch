@@ -1,14 +1,14 @@
 {
-  "name": "reflex",
+  "name": "arch",
   "version": "0.0.3a",
   "description": "Web application framework for React",
-  "homepage": "https://github.com/redbadger/reflex",
+  "homepage": "https://github.com/redbadger/arch",
   "repository": {
     "type": "git",
-    "url": "https://github.com/redbadger/reflex.git"
+    "url": "https://github.com/redbadger/arch.git"
   },
   "keywords": [
-    "Reflex",
+    "Arch",
     "Framework",
     "React",
     "Reactive",
@@ -17,10 +17,10 @@
     "Cursor"
   ],
   "bugs": {
-    "url": "https://github.com/redbadger/reflex/issues"
+    "url": "https://github.com/redbadger/arch/issues"
   },
   "bin": {
-    "reflex-server": "bin/server.js"
+    "arch-server": "bin/server.js"
   },
   "main": "./lib/index.js",
   "files": [

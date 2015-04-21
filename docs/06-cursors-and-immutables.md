@@ -1,6 +1,6 @@
 # Cursors over Immutable Data
 
-In this section we’ll discuss the details and reasons for using cursors over immutable data structures as the storage mechanism for state in Reflex rather than mutable data.
+In this section we’ll discuss the details and reasons for using cursors over immutable data structures as the storage mechanism for state in Arch rather than mutable data.
 
 ## The value of values
 
@@ -60,7 +60,7 @@ When the reference to the original root is lost, the changed nodes get garbage c
 
 ## Bringing the state back
 
-In practice, we need to keep a state value in a mutable reference. The advantage of using an immutable state is that the updates are very controlled and can only happen by replacing the entire thing. Combined with centralised state in Reflex applications having immutable state would unfortunately mean anyone working with the state needs to understand the full structure of it to perform updates. That is obviously not practical.
+In practice, we need to keep a state value in a mutable reference. The advantage of using an immutable state is that the updates are very controlled and can only happen by replacing the entire thing. Combined with centralised state in Arch applications having immutable state would unfortunately mean anyone working with the state needs to understand the full structure of it to perform updates. That is obviously not practical.
 
 ### Cursors
 
@@ -68,13 +68,13 @@ The solution is simple - we need mutable references to a particular item - or �
 
 The same thing must work the other way round as well: when the zoomed-in structure is mutated, the updates need to propagate back to the original data structure. When you update a cursor, the update gets applied to the right subtree of the full data structure and the backing reference gets updated.
 
-The cursor is a simple data structure holding a reference to the root cursor (the one holding the entire backing data structure) and a key-path to which it is focused. That allows the cursor to  easily derive sub-cursors by appending keys to the path they hold. Cursors themselves are immutable (although in Reflex that behaviour is not forced): when you get a sub-cursor, you get a new cursor back.
+The cursor is a simple data structure holding a reference to the root cursor (the one holding the entire backing data structure) and a key-path to which it is focused. That allows the cursor to  easily derive sub-cursors by appending keys to the path they hold. Cursors themselves are immutable (although in Arch that behaviour is not forced): when you get a sub-cursor, you get a new cursor back.
 
 To update a cursor, you supply a function that takes the current data pointed to by the cursor and produces the new data. The cursor takes the new data and produces a new root data structure where the item it is pointing to is replaced by the data returned by your function. Then it swaps the backing data structure in the root cursor.
 
 ## Effectively local state
 
-The use of cursors in Reflex effectively brings working with shared state back to the level of individual components - a component only needs to know what data it expects in props and which of them are mutable, i.e. cursors. During its lifetime it either mutates the cursors it received or zooms in to distribute them into child components.
+The use of cursors in Arch effectively brings working with shared state back to the level of individual components - a component only needs to know what data it expects in props and which of them are mutable, i.e. cursors. During its lifetime it either mutates the cursors it received or zooms in to distribute them into child components.
 
 This means that no component ever needs to know more than its local part of the state tree. Specifically speaking it needs to know what data it requires and how to get data required by its child components from it.
 
@@ -86,9 +86,9 @@ Rendering UI is not the only thing you ever want to do with your application sta
 
 ## Observability
 
-Reflex cursors allow anyone to plug in any data processing necessary by registering for state updates on any cursor. When you do, any time the item in the data structure pointed to by the cursor changes, all observers registered on it and any of its parents all the way back to the root are notified.
+Arch cursors allow anyone to plug in any data processing necessary by registering for state updates on any cursor. When you do, any time the item in the data structure pointed to by the cursor changes, all observers registered on it and any of its parents all the way back to the root are notified.
 
-Reflex itself observers the root cursor of the app state and re-renders the root UI component whenever it changes. This implicit rendering means you don’t need to trigger, distribute and handle user events in your application manually (e.g. with a Flux style dispatcher). A user action *always* results in a state change which should either render the UI again or trigger some processing through observation.
+Arch itself observers the root cursor of the app state and re-renders the root UI component whenever it changes. This implicit rendering means you don’t need to trigger, distribute and handle user events in your application manually (e.g. with a Flux style dispatcher). A user action *always* results in a state change which should either render the UI again or trigger some processing through observation.
 
 ## Cursor API
 

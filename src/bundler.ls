@@ -6,7 +6,7 @@ exports.bundle = (paths, watch, changed) ->
   entry = require.resolve paths.app.abs
 
   browser-env = ^^process.env
-  browser-env.REFLEX_ENV = 'browser'
+  browser-env.ARCH_ENV = 'browser'
   browser-env = browser-env |> Obj.map JSON.stringify
 
   # Basic configuration
@@ -23,11 +23,11 @@ exports.bundle = (paths, watch, changed) ->
 
     resolve:
       root: path.join paths.app.abs, 'node_modules'
-      fallback: path.join paths.reflex.abs, 'node_modules'
+      fallback: path.join paths.arch.abs, 'node_modules'
       extensions: [ '', '.ls', '.js', '.jsx' ]
 
     resolve-loader:
-      root: path.join paths.reflex.abs, 'node_modules'
+      root: path.join paths.arch.abs, 'node_modules'
       fallback: path.join paths.app.abs, 'node_modules'
 
     plugins: [ new webpack.DefinePlugin 'process.env': browser-env ]

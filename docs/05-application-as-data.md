@@ -8,14 +8,14 @@ some of the data change (by abstracting it into the `state`). Your user interfac
 thus becomes a projection of a data structure composed of the `props` and the
 `state`. Your UI is a function of the `props` and `state`.
 
-Reflex takes this approach and scales it beyond a single component, while making
+Arch takes this approach and scales it beyond a single component, while making
 it look, if you squint a little, as if nothing changed for the components themselves.
 When you need to share some data between two components, you can promote it onto
 the shared central app-state and pass a cursor to both components in `props`.
-Components are also allowed to modify the data they’ve got in props and Reflex
+Components are also allowed to modify the data they’ve got in props and Arch
 propagates the updates to the rest of the application.
 
-In Reflex, your whole UI is a functional projection of the app-state (plus the
+In Arch, your whole UI is a functional projection of the app-state (plus the
 current URL). Think of that again, your _entire_ user interface state is described
 by a single data structure. For the components, though, everything still feels
 like simple, local data.
@@ -39,9 +39,9 @@ articles:
       published: Date
       abstract: This is the first blog on my website
       comments: 1
-    * title: Loving Reflex so far
+    * title: Loving Arch so far
       published: Date
-      abstract: Building applications in Reflex is so easy!
+      abstract: Building applications in Arch is so easy!
       comments: 6
     * ...
 article:
@@ -49,7 +49,7 @@ article:
   content: null
 tags:
   javascript: 5
-  reflex: 3
+  arch: 3
   react: 7
   ...
 ```
@@ -67,7 +67,7 @@ being, in essence, a simple (albeit fairly big) data structure, you don’t have
 any code dependencies between your domain model and your UI code - only data
 structure dependencies.
 
-The other important aspect of the Reflex app-state is that it is backed by an
+The other important aspect of the Arch app-state is that it is backed by an
 immutable data structure, ensuring that whenever you `.deref!` a cursor, the data
 you get back is yours and yours only. It can never change in your hands. No need
 to ever again try to track down some innocent looking write to a function argument

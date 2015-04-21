@@ -1,8 +1,8 @@
 # LiveScript
 
-Reflex is a node.js and in-browser JavaScript framework, but it is itself written in [LiveScript](http://livescript.net/) - a functional style transpiled language inspired by Haskell - and our default choice of application language is LiveScript as well. Since LiveScript isn’t a high-profile language, the choice deserves an explanation.
+Arch is a node.js and in-browser JavaScript framework, but it is itself written in [LiveScript](http://livescript.net/) - a functional style transpiled language inspired by Haskell - and our default choice of application language is LiveScript as well. Since LiveScript isn’t a high-profile language, the choice deserves an explanation.
 
-Reflex applications are mostly written in a functional style. This is enabled by the way UI is built in React.js as a one-way functional projection of a UI model. Treating your user interface as a simple data structure and performing any state changes as changes to the data is much simpler and much more powerful than working with the UI components and ultimately the DOM directly.
+Arch applications are mostly written in a functional style. This is enabled by the way UI is built in React.js as a one-way functional projection of a UI model. Treating your user interface as a simple data structure and performing any state changes as changes to the data is much simpler and much more powerful than working with the UI components and ultimately the DOM directly.
 
 ## Why do I need to learn a different language?
 
@@ -20,13 +20,13 @@ An especially interesting benefit of using LiveScript is the option not to use J
 
 LiveScript just makes the fact that React doesn’t need a template language obvious. Semantically, a component tag is really just a function call that optionally takes an object with props and a list of children or multiple individual child components.
 
-To achieve this functional declarative style, Reflex uses a think wrapper around `React.DOM` and React components, that creates the element factory functions. The reason we need those is the new React API introduced in version 0.12, where defining a component doesn’t automatically create a factory function that lets you directly render that component by calling it.
+To achieve this functional declarative style, Arch uses a think wrapper around `React.DOM` and React components, that creates the element factory functions. The reason we need those is the new React API introduced in version 0.12, where defining a component doesn’t automatically create a factory function that lets you directly render that component by calling it.
 
-Reflex’s goal is to make the UI as functional and declarative as possible. While `reflex.dom` was created out of necessity, it lets us support a few convenient API formats React itself doesn’t, like for example the ability to create elements without explicit (often empty) props
+Arch’s goal is to make the UI as functional and declarative as possible. While `arch.dom` was created out of necessity, it lets us support a few convenient API formats React itself doesn’t, like for example the ability to create elements without explicit (often empty) props
 
 ```
-image = reflex.dom require ‘./image’
-dom = reflex.dom
+image = arch.dom require ‘./image’
+dom = arch.dom
 
 render: ->
   dom.div do
@@ -61,8 +61,8 @@ The pipe operator is very convenient for building streams of processing in your 
 
 ## Why not ES 6 & JSX?
 
-A lot of the improvements brought by LiveScript are also present in ES 6, although not nearly all of them. On the other hand, ES 6 is the future standard, which would enable us to run Reflex applications natively in the browser without the need for transpiling.
+A lot of the improvements brought by LiveScript are also present in ES 6, although not nearly all of them. On the other hand, ES 6 is the future standard, which would enable us to run Arch applications natively in the browser without the need for transpiling.
 
 However, all browsers you need to presently support in practice will not get full native support for ES 6 for years to come; you will still need to use transpilation from ES 6 to ES 5, therefore it’s on par with LiveScript in that respect and LiveScript is still (in our opinion) a more powerful language.
 
-That said, Reflex doesn’t stop you from writing your application in ES 6 or even ES 5 if you wish, everything will still work just fine. Our primary choice of a langue is, and for the foreseeable future will be, LiveScript.
+That said, Arch doesn’t stop you from writing your application in ES 6 or even ES 5 if you wish, everything will still work just fine. Our primary choice of a langue is, and for the foreseeable future will be, LiveScript.
