@@ -32,13 +32,13 @@ $ mkdir my-app && cd my-app
 You can then generate a new app by running
 
 ```
-arch init
+arch-cli init
 ```
 
 and following the steps. When done start the application by running
 
 ```
-arch serve
+arch-cli serve
 ```
 
 your application is now running on <http://localhost:3000>.

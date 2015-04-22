@@ -2,20 +2,20 @@
 
 As an introduction to Arch, we’ll build a simple application showing a list of items. We pick a listing because it’s a very common use case and the simplest example that demonstrates all the major concepts behind Arch.
 
-## Create a Arch application
+## Create an Arch application
 
 The easiest way to start is using the Arch CLI. You can install it from npm with
 
     npm install -g arch-cli
 
-To create a Arch application create a new directory and run `arch init` inside
+To create an Arch application create a new directory and run `arch-cli init` inside
 
     mkdir demo && cd demo
-    arch init
+    arch-cli init
 
 This will generate an application skeleton. You can start the application by running
 
-    arch s
+    arch-cli s
 
 and access the application on <http://localhost:3000>
 
@@ -23,7 +23,7 @@ and access the application on <http://localhost:3000>
 
 As part of the example application, you’ll get a route to handle  the `/` URL. In most cases, you want your application’s possible general states to be linkable, i.e. serialised in and reconstructible from the URL.
 
-You can specify routes in the `app.ls` file in the `app` directory. This file is responsible for defining your application. You create a Arch application by calling
+You can specify routes in the `app.ls` file in the `app` directory. This file is responsible for defining your application. You create an Arch application by calling
 
 ```livescript
 arch.application.create

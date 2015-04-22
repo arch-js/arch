@@ -8,7 +8,7 @@ Arch comes with a CLI to generate and run the applications conveniently, but als
 
 ## Client-first and Isomorphic
 
-Arch applications are meant to be backed by a backend layer in the form of an API server(s) or service(s) and Arch therefore doesn’t have any provisions for server-side only code. You build a Arch application as a javascript single-page application.
+Arch applications are meant to be backed by a backend layer in the form of an API server(s) or service(s) and Arch therefore doesn’t have any provisions for server-side only code. You build an Arch application as a javascript single-page application.
 
 Traditional single-page applications have several drawbacks (you can go as far as saying they “break the web” [link]), which Arch addresses by providing isomorphic routing and rendering out of the box without a need for any server specific code. You treat your application as if it’s client-side only and Arch does the work to make it a good web application. We call this approach client-first.
 
