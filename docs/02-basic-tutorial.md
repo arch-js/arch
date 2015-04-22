@@ -77,6 +77,8 @@ Pages (route handlers) in Arch are React components. They all share the same `pr
 * `app-state` - the application state (more on that later)
 * `context` - the parsed URL with parameters (route segments or query string)
 
+To learn more about routing, read the [routing guide](08-isomorphism-routing.md).
+
 ## LiveScript as template language
 
 The listing component code deserves a more detailed explanation. First, we don’t use JSX to define the DOM structure we’re rendering, we use pure LiveScript. Second, we use a thin wrapping layer provided by Arch to make LiveScript a very nice markup language: Each component is a simple function taking its children as arguments - either separately or in an array. Optionally, the first argument is an object with props for the component. Behind the scenes Arch uses `React.createElement` like JSX would.
@@ -258,7 +260,7 @@ You might be thinking “so now we’ve made a couple things much more complicat
         @props.things |> map -> li it
 ```
 
-Everything works exactly as it did before, except our state is now central, which has countless benefits (see [Application as Data](https://github.com/redbadger/reflex/blob/master/docs/05-application-as-data.md) for examples). Every time the state gets updated, the whole UI gets automatically re-rendered so we can see our changes (which isn’t nearly as expensive as it sounds partly through the magic of React, partly through optimisations Arch itself does [will do]).
+Everything works exactly as it did before, except our state is now central, which has countless benefits (see [Application as Data](05-application-as-data.md) for examples). Every time the state gets updated, the whole UI gets automatically re-rendered so we can see our changes (which isn’t nearly as expensive as it sounds partly through the magic of React, partly through optimisations Arch itself does [will do]).
 
 When the user types into the field, we `update` the query value to the value of the event. The `update` method actually takes a callback, instead of just taking a new value.
 
@@ -358,7 +360,7 @@ We still need to hook this into the app-state. We do that in the application con
 
 Notice the search initialisation is again independent of the structure of the app-state itself. It only requires a query cursor to observe and an items cursor to update.
 
-If you now type into the search field and hit enter, you should get a list of matching Github users. You could very easily implement a loading indicator by clearing the list of result on query change in the search module and displaying a spinner when there are no items to display.
+If you now type into the search field and hit enter, you should get a list of matching Github users. You could very easily implement a loading indicator by adding a in progress flag when the request is initiated and flipping it when it has finished.
 
 ## Conclusion
 
