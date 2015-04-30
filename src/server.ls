@@ -50,7 +50,10 @@ module.exports = (options) ->
 
       done |> each -> delete require.cache[it]
 
-      app := require options.paths.app.rel
+      try
+        app := require options.paths.app.rel
+      catch
+        console.error 'Error in changed files when restarting server'
 
     if cb
       listener = server.listen options.port, (err) ->
