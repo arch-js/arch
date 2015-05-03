@@ -55,10 +55,33 @@ This architecture achieves a very loose coupling between the front-end and the b
 
 ### Observer “ping pong”
 
-A typical pattern for state observers is to have a kind of dialog with the UI components. User actions are handled by the component, which in turn change the app state. The change is registered by one or more observers (e.g. a search backend or a persistence provider) and the result of their work again updates the app state. Finally, that update triggers a redraw of the UI, showing the results to the user.
+A typical pattern for state observers is to have a kind of dialog with the UI components. User actions are handled by the component, which in turn changes the app state. The change is registered by one or more observers (e.g. a search backend or a persistence provider) and the result of their work again updates the app state. Finally, that update triggers a redraw of the UI, showing the results to the user.
 
 A nice benefit of this approach is that the stages of the processing are explicit and you can show the progress of a long running operation to the user (e.g. have a ‘loading’ flag used to trigger a fetch from a backend and display or hide a loading indicator at the same time).
 
-Arch forces you to make even transient states explicit, which is usually beneficial to your application design.
+Arch forces you to make even transient states explicit, which is usually beneficial to your application design. Let's look at an example state observer which integrates with a search backend and uses a loading flag to trigger the fetching.
 
-TODO: example for interfacing with a RESTful API
+```
+require! {'isomorphic-fetch': 'fetch'}
+
+matches = (search, item) -->
+  search is '' or item.to-lower-case!.index-of(search.to-lower-case!) > -1
+
+module.exports = (query, items, loading) ->
+  loading.on-change ->
+    return unless it is yes
+
+    fetch "https://api.example.com/search/documents?q=#{query.deref!}"
+    .then (res) ->
+      throw new Error(res.status-text) unless res.status in [200 til 300]
+      res
+    .then (res) -> res.json!
+    .then (body) ->
+      loading.update -> false
+      items.update ->
+        body.items
+    .catch ->
+      loading.update -> false
+```
+
+We observe the `loading` cursor and when it changes to `true` we fetch from the API using the query cursor value. When a response comes back we update the items cursor. In case of an error, we only turn the `loading` flag back to false, but we could also supply the actual error to the UI. Throughout the fetching we can use the `loading` flag in the UI to present the asynchronous operation to the user.

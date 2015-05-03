@@ -26,31 +26,30 @@ Arch is isomorphic out of the box. It comes with it’s own node.js based server
 
 In practice, this means you define your URL mappings (“routes”) just once and they will work on both sides. Each URL (route) is handled by a route component - a react component describing your page on the top level. All route components share a `props` format: they receive  `app-state` - your application state cursor and `context` - the parsed route and all data derived from it (routes can have dynamic segments, e.g. `/users/:name`).
 
-Arch also lets you perform some operations whenever the application transitions to a given route (e.g. start fetching some data form an API). Let’s look at an example route definition in `app.ls`:
-
 ```livescript
 page = arch.routes.page
 routes.define do
   page '/', home-page
-  page '/archives/:year/:month/:day', blog-archive, (state) ->
-		return unless empty (state.get \articles .deref!)
-		state.get \loading-articles .update -> true
-
-	page '/blog/:slug', blog-article, (state, context) ->
-		slug = context.params.slug
-		article = state.get "article"
-		return if article.get "slug" .deref! is slug
-
-		article.update -> slug: slug, loading: true
-
+  page '/archives/:year/:month/:day', blog-archive
+	page '/blog/:slug', blog-article
 	page '*', static-page
 ```
 
-There’s a lot going on here, so let’s look at it route by route. First, we define a home page route, matching a `/` URL. That route is represented by the `home-page` component. Whenever we respond to `/`, the `home-page` component will get rendered with the current `app-state`.
+First, we define a home page route, matching a `/` URL. That route is represented by the `home-page` component. Whenever we respond to `/`, the `home-page` component will get rendered with the current `app-state`.
 
-Next we define a route with some dynamic segments for a blog archive page. The `blog-archive` component will get the actual values for parameters `year`, `month` and `day` in the `context` prop. This route also has an initialiser function, which makes sure the article list is available. If it isn’t, it sets a `loading-articles` flag to `true`, which gets picked up by a state observer (which isn’t shown for the sake of simplicity).
+Next we define a route with some dynamic segments for a blog archive page. Since the current route is also part of the overall application state, you can find the matched segments and all other values from the matched route on the `app-state` cursor.
 
-In response the observer will fetch the list of articles from the API and when done, update the state, putting the list onto the `articles` path, also setting the `loading-article` flag back to false. The `loading-article` flag can be used by the component to render a loading indicator. See the [Arch architecture](04-arch-architecture.md) section for more details about the state observer pattern.
+The `blog-archive` component will expect the listing of articles to render, so we need to trigger the fetching of them somewhere. And
+since that is a response to a change in state the natural place to do it is a state observer.
+
+```livescript
+app-state.get \route .on-change ->
+	return unless it.params.year
+	app-state.get \state.articles.loading .update -> true
+```
+
+Whenever the route changes, if it has the right parameters, the loading flag of articles is set to true, which gets picked up
+by another state observer handling that particular task. In response, that observer will fetch the list of articles from the API and when done, update the state, putting the list onto the `articles.items` path, also setting the `loading` flag back to false. The `loading` flag can be used by the component to render a loading indicator. See the [Arch architecture](04-arch-architecture.md) section for more details about the state observer pattern.
 
 The third route is very similar to the second one, except it uses the URL context directly in it’s initialiser, fetching the currently shown article.
 

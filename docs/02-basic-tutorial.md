@@ -408,7 +408,7 @@ Notice the search initialisation is again independent of the structure of the ap
 
 Finally, we need to make a slight change to our `listing` route:
 
-```
+```livescript
 render: ->
   query = @props.app-state.get \state.query
   items = @props.app-state.get \state.items
