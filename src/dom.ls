@@ -25,7 +25,9 @@ component = (el, args) ->
     children = args
     props = {}
 
-  props.children = (if children and children.length is 1 then children[0] else children)
+  props.children =
+    unless empty children
+      if children.length is 1 then children[0] else children
 
   React.create-element el, props
 
