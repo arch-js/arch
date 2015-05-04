@@ -1,5 +1,5 @@
 require! <[ ./cursor ]>
-{first, tail, each, keys, is-type} = require 'prelude-ls'
+{first, tail, each, keys, is-type, empty} = require 'prelude-ls'
 
 _cursor = cursor []
 is-cursor = -> # TODO: better checking for this...
