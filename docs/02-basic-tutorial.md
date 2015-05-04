@@ -44,17 +44,19 @@ This means the ‘/listing’ URL is handled by a ‘listing’ route component.
 To make this line work, you need to create the component itself. To do that create a file in the ‘app/routes’ directory, called ‘listing.ls’ with the following code:
 
 ```livescript
-require! <[ arch ]>
+require! {
+  './base-route': BaseRoute
+  arch
+}
 d = arch.DOM
 
 things =
-  * "Hovercraft full of eels"
+  * "Hovercraft full of eels"
   * "Ex-parrot"
   * "Eggs, beans, bacon and spam"
   * "Flying circus"
 
-module.exports = React.create-class do
-  display-name: 'listing'
+module.exports = class Listing extends BaseRoute do
   render: ->
     d.div do
       d.h1 "A list of useful things"
@@ -63,21 +65,25 @@ module.exports = React.create-class do
           d.li it
 ```
 
-then add
+then change the top of `app.ls` to say
 
 ```livescript
-  global import require 'prelude'
-  require! './routes/listing'
+# module dependencies
+require! <[ arch ]>
+global import require 'prelude-ls'
+
+# route components
+require! <[
+  ./routes/welcome
+  ./routes/listing
+  ./routes/not-found
+]>
 ```
 
-to the top of `app.ls` to be able to reference the component and use `prelude-ls` implementation of `map`. You can now go to http://localhost:3000/hello and see your page rendered.
+so that we're able to reference the component and use `prelude-ls` implementation of `map`. You can now go to http://localhost:3000/hello and see your page rendered.
 
-Pages (route handlers) in Arch are React components. They all share the same `props` format, specifically, they all get the following props:
-
-* `app-state` - the application state (more on that later)
-* `context` - the parsed URL with parameters (route segments or query string)
-
-To learn more about routing, read the [routing guide](08-isomorphism-routing.md).
+Pages (route handlers) in Arch are React components. They all share the same `props` format, specifically, they all get the
+application state as their single prop, called `app-state`. To learn more about routing, read the [routing guide](08-isomorphism-routing.md).
 
 ## LiveScript as template language
 
@@ -106,13 +112,11 @@ Now we need to add some state handling to make it interactive
 
 ```livescript
 matches = (query, item) -->
-  item.index-of query > 0
+  item.to-lower-case!.index-of(query.to-lower-case!) > -1
 
-module.exports = React.create-class do
-  display-name: 'listing'
-
-  get-initial-state: ->
-    query: ''
+module.exports = class Listing extends BaseRoute
+  ->
+    @state = query: ''
 
   render: ->
     d.div do
@@ -138,7 +142,7 @@ React doesn’t go much further than that. In real-world applications however, s
 
 Arch takes a different approach to state, which is very similar to the [Om framework](https://github.com/omcljs/om) for ClojureScript. In Arch, all shared UI state is kept in a single place, the `app-state` - application state.
 
-The application state is a “cursor” - a focused view of a part of a larger data structure that can be mutated in controlled fashion. There is a larger discussion of the application structure in the [Arch Architecture](04-arch-architecture.md) section.
+The application state is a “cursor” - a focused view of a part of a larger data structure that can be mutated in a controlled fashion. There is a larger discussion of the application structure in the [Arch Architecture](04-arch-architecture.md) section.
 
 Let’s add a list of recent searches into our little demo. Since it will be another listing, we should keep our code DRY and extract the list rendering into a separate component.
 
@@ -148,11 +152,10 @@ Let’s add a list of recent searches into our little demo. Since it will be ano
 require! <[ arch ]>
 d = arch.DOM
 
-module.exports = React.create-class do
-  display-name: 'list'
+module.exports = class List extends React.Component
   render: ->
-    d.ul
-      @props.item |> map ->
+    d.ul do
+      @props.items |> map ->
         d.li it
 ```
 
@@ -197,15 +200,14 @@ and the filterable list
 # components/list.ls
 render: ->
   d.div do
-    # form from listing.ls
     d.form do
       d.input do
         type: 'search'
         placeholder: 'Search things'
         value: @props.query
         on-change: ~> # now what?
-    ul do
-      @props.things |> map -> li it
+    d.ul do
+      @props.items |> map -> d.li it
 ```
 
 This made the route component much simpler, but we now face a new problem - how do we notify whoever is interested that the user changed the query?
@@ -230,8 +232,8 @@ Then we need to use that list in our listing route
 
 ```livescript
   render: ->
-    query = @props.app-state.get \query
-    items = @props.app-state.get \items
+    query = @props.app-state.get \state.query
+    items = @props.app-state.get \state.items
 
     d.div do
       d.h1 "A list of useful things"
@@ -243,6 +245,8 @@ Then we need to use that list in our listing route
 As you can see, there is a bit of ceremony going on when using the `app-state` cursor. That’s because a cursor is an explicit wrapper that acts as a reference into the application state.
 
 Notice we first `get` the query and items from the app state. The `get` call returns a cursor backed by the same data the original was. Then we pass the query cursor down to the list component and compute the list of items it should show. To do that, we need the actual values the two new cursors are referring to, which means we need to dereference them. That’s what the `deref!` call does - it gives back the actual value behind the reference.
+
+There is one more interesting detail in the previous code snippet - the `state.` prefix in the query and items paths. The `app-state` cursor in arch reserves the top level keys for use by the framework. At the moment, there are two keys `state` and `route`. The value for the `state` key is the user-defined application state, the value for the `route` key is the currently matched route, including the matched segment values. This way, the `app-state` contains all of the application state, including routing information.
 
 You might be thinking “so now we’ve made a couple things much more complicated and got nothing in return”. But now, we can solve our trouble of what to do in our filterable list component.
 
@@ -256,11 +260,11 @@ You might be thinking “so now we’ve made a couple things much more complicat
           value: @props.query.deref!
           on-change: (e) ~>
             @props.query.update -> e.target.value
-      ul do
-        @props.things |> map -> li it
+      d.ul do
+        @props.items |> map -> d.li it
 ```
 
-Everything works exactly as it did before, except our state is now central, which has countless benefits (see [Application as Data](05-application-as-data.md) for examples). Every time the state gets updated, the whole UI gets automatically re-rendered so we can see our changes (which isn’t nearly as expensive as it sounds partly through the magic of React, partly through optimisations Arch itself does [will do]).
+Everything works exactly as it did before, except our state is now central, which has countless benefits (see [Application as Data](05-application-as-data.md) for examples). Every time the state gets updated, the whole UI gets automatically re-rendered so we can see our changes (which isn’t nearly as expensive as it sounds partly through the magic of React, partly through optimisations Arch itself can do [and soon will do] thanks to the immutable data structures backing the `app-state`).
 
 When the user types into the field, we `update` the query value to the value of the event. The `update` method actually takes a callback, instead of just taking a new value.
 
@@ -269,30 +273,30 @@ In Arch, the new state behind the cursor is a function of the state before the u
 Let’s finally add the list of recent queries. First we need to keep track of them.
 
 ```livescript
-  get-initial-state: ->
-    query: @props.query.deref!
+module.exports = class List extends React.Component
+  ->
+    @state = query: ''
 
   render: ->
     d.div do
       if @props.query
         d.form do
+          on-submit: (e) ~>
+            e.prevent-default!
+
+            @props.query.update ~> @state.query
+            @props.queries.update ~> [@state.query] ++ it
           d.input do
             type: 'search'
             placeholder: 'Search things'
-            value: @props.query.deref!
-            on-keyup: (e) ~>
-              return unless e.key is 13 # ENTER key
-
-              @props.query.update -> q
-              @props.queries.update -> it.unshift q
+            value: @state.query
             on-change: (e) ~>
               @set-state query: e.target.value
-
-      ul do
-        @props.things |> map -> li it
+      d.ul do
+        @props.items |> map -> d.li it
 ```
 
-The list component now takes an additional prop - the list of queries to push into. Since we probably don’t want to track every single character as a new query, we’ll change the behaviour to only submit when the user presses the Enter key. Notice the component gained some internal state again. We also made a small change hiding all the filtering UI if we don’t get any query, this will be useful in a second.
+The list component now takes an additional prop - the list of queries to push into. Since we probably don’t want to track every single character as a new query, we’ll change the behaviour to only submit when the user presses the Enter key submitting the form. Notice the component gained some internal state again to support this behaviour. We also made a small change hiding all the filtering UI if we don’t get any query, this will be useful in a second.
 
 The initial state needs to contain an empty list of recent queries to have somewhere to push queries in.
 
@@ -315,22 +319,23 @@ Rendering the recent queries is as simple as adding another list component to ou
 
 ```livescript
   render: ->
-    query = @props.app-state.get \query
-    things = @props.app-state.get \items
-    queries = @props.app-state.get \queries
+    query = @props.app-state.get \state.query
+    things = @props.app-state.get \state.things
+    queries = @props.app-state.get \state.queries
 
     d.div do
       d.h1 "A list of useful things"
       list do
         query: query
-        queries: queries
         items: (things.deref! |> filter matches query.deref!)
+        queries: queries
+
       d.h2 "Recent searches"
       list do
         items: queries.deref! |> take 5
 ```
 
-Notice how our route component splits the app state up and distributes it to its children. This is a very common pattern in Arch and the main way the applications stay modular and components stay decoupled.
+Notice how our route component breaks the app state down and distributes it to its children. This is a very common pattern in Arch and the main way the applications stay modular and components stay decoupled.
 
 You can imagine you can easily make the recent queries clickable to run them again. You just need to pass the query cursor into the second list and implement the interactivity there (at that point, it is probably becoming a different component - one that updates a state key-path with an item from a list.
 
@@ -343,29 +348,92 @@ First let’s think about what this means. We want to respond to the query chang
 Let’s create a separate module that does what we need.
 
 ```livescript
-  # lib/github-search.ls
-  # TODO implement this
+# observers/github-search.ls
+require! {'isomorphic-fetch': 'fetch'}
+
+module.exports = (query, results) ->
+  query.on-change ->
+    fetch "https://api.github.com/search/users?q=#{it}"
+    .then (res) ->
+      throw new Error(res.status-text) unless res.status in [200 til 300]
+      res
+    .then (res) -> res.json!
+    .then (body) ->
+      results.update ->
+        body.items |> map (.login)
+    .catch ->
 ```
 
-The module has a `init` function, which gets the app-state and watches the `query` path on it. Whenever it changes, the module starts an API request. Upon getting the results, it updates the `items` in the app-state, which in turn re-renders the UI.
+The module exports a function, which observers the `query` cursor. Whenever it changes, the module starts an API request. Upon getting the results, it updates the `items` in the app-state, which in turn re-renders the UI.
+
+To support this module, we need an `isomorphic-fetch` module from npm. Install it with
+
+```
+$ npm install --save isomorphic-fetch
+```
 
 We still need to hook this into the app-state. We do that in the application configuration file.
 
 ```livescript
+...
+
+# route components
+require! <[
+  ./routes/welcome
+  ./routes/listing
+  ./routes/not-found
+
+  ./observers/github-search
+]>
+
+initial-state =
+  query: ''
+  items: []
+  queries: []
+
+module.exports = arch.application.create do
+  get-initial-state: ->
+    initial-state
+
   start: (app-state) ->
-    github-search.init do
-      query: app-state.get(\query)
-      items: app-state.get(\items)
+    query = app-state.get \state.query
+    items = app-state.get \state.items
+
+    github-search query, items
+
+...
 ```
 
 Notice the search initialisation is again independent of the structure of the app-state itself. It only requires a query cursor to observe and an items cursor to update.
 
-If you now type into the search field and hit enter, you should get a list of matching Github users. You could very easily implement a loading indicator by adding a in progress flag when the request is initiated and flipping it when it has finished.
+Finally, we need to make a slight change to our `listing` route:
+
+```livescript
+render: ->
+  query = @props.app-state.get \state.query
+  items = @props.app-state.get \state.items
+  queries = @props.app-state.get \state.queries
+
+  d.div do
+    d.h1 "A list of useful things"
+    list do
+      query: query
+      items: items.deref!
+      queries: queries
+
+    d.h2 "Recent searches"
+    list do
+      items: queries.deref! |> take 5
+```
+
+We also no longer need the `matches` function at the top. This is coincidentally very good for decoupling the UI from the business logic - if we decide to change the search to something completely different, we just switch the search provider in `app.ls`
+
+If you now type into the search field and hit enter, you should get a list of top 50 matching Github users. You could very easily implement a loading indicator by adding an in-progress flag, turn it on when the request is initiated and flipping it back off when it has finished.
 
 ## Conclusion
 
-This concludes the introductory Arch tutorial. You may have noticed that Arch focuses primarily on state management. State is absolutely central to Arch (no pun intended). Most of the advanced features of Arch are only possible because of the strict way application state is managed in Arch.
+This concludes the introductory Arch tutorial. You may have noticed that Arch focuses primarily on state management. State is absolutely central (no pun intended) to Arch. Most of the advanced features of Arch and applications built on it are only possible because of the strict way application state is managed.
 
 In this tutorial, you’ve seen how there are various scopes of state – sizes of the state loop: component local, global - shared between components, global - shared between the app and an API.
 
-The latter case demonstrated one use-case for state observers, but you can extract various different common tasks into state observers (form validation, domain logic computation, service integrations, metrics collection, persistence…). See [Application as Data]() for a larger discussion of the concept of central state.
+The latter case demonstrated one use-case for state observers, but you can extract various different common tasks into state observers (form validation, domain logic computations, service integrations, metrics collection, persistence…). See [Application as Data]() for a larger discussion of the concept of central state.
