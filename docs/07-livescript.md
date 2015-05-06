@@ -20,7 +20,7 @@ An especially interesting benefit of using LiveScript is the option not to use J
 
 LiveScript just makes the fact that React doesn’t need a template language obvious. Semantically, a component tag is really just a function call that optionally takes an object with props and a list of children or multiple individual child components.
 
-To achieve this functional declarative style, Arch uses a think wrapper around `React.DOM` and React components, that creates the element factory functions. The reason we need those is the new React API introduced in version 0.12, where defining a component doesn’t automatically create a factory function that lets you directly render that component by calling it.
+To achieve this functional declarative style, Arch uses a thin wrapper around `React.DOM` and React components, that creates the element factory functions. The reason we need those is the new React API introduced in version 0.12, where defining a component doesn’t automatically create a factory function that lets you directly render that component by calling it.
 
 Arch’s goal is to make the UI as functional and declarative as possible. While `arch.dom` was created out of necessity, it lets us support a few convenient API formats React itself doesn’t, like for example the ability to create elements without explicit (often empty) props
 
@@ -65,4 +65,4 @@ A lot of the improvements brought by LiveScript are also present in ES 6, althou
 
 However, all browsers you need to presently support in practice will not get full native support for ES 6 for years to come; you will still need to use transpilation from ES 6 to ES 5, therefore it’s on par with LiveScript in that respect and LiveScript is still (in our opinion) a more powerful language.
 
-That said, Arch doesn’t stop you from writing your application in ES 6 or even ES 5 if you wish, everything will still work just fine. Our primary choice of a langue is, and for the foreseeable future will be, LiveScript.
+That said, Arch doesn’t stop you from writing your application in ES 6 or even ES 5 if you wish, everything will still work just fine. Our primary choice of a language is, and for the foreseeable future will be, LiveScript.
