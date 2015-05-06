@@ -50,7 +50,8 @@ module.exports =
 
         # Initialise app state
 
-        server-state = JSON.parse root-dom-node.get-attribute 'data-arch-app-state'
+        state-node = document.get-element-by-id "arch-state"
+        server-state = JSON.parse state-node.text
 
         app-state = if server-state
           cursor server-state
