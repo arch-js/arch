@@ -25,16 +25,20 @@ init-app-state = (initial-state, route-context) ->
   cursor state: initial-state, route: route-context
 
 observe-page-change = (root-tree, app-state) ->
-  app-state.get \route .on-change ->
+  app-state.get \route .on-change (route) ->
     # FIXME this is clearly a hack. We should figure out
     # how to do this when the rendering is done
     # which is after the set-state on the root component
     # is done.
     set-timeout ->
       {title} = dom-utils.route-metadata root-tree
-
       document.title = title
-      window.scroll-to 0, 0
+      if el = document.get-element-by-id route.hash
+        # scroll to element if hash target and hash target found
+        window.scroll-to 0, (el.get-bounding-client-rect!.top - document.body.get-bounding-client-rect!.top)
+      else
+        # scroll to top if no hash target or not found
+        window.scroll-to 0, 0
     , 0
 
 module.exports =
