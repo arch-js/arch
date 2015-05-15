@@ -24,7 +24,7 @@ form-elements = (tree, path, input-names) ->
 route-metadata = (tree) ->
   route = extract-route tree
 
-  title = if route.get-title then that! else ""
+  title = if route.get-title then that.call route else ""
 
   # collect all the metadata
   title: title
