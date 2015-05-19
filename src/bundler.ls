@@ -1,8 +1,8 @@
-require! <[ webpack path webpack-dev-server ]>
+require! <[ webpack path webpack-dev-server fs ]>
 
 {Obj, keys} = require 'prelude-ls'
 
-exports.bundle = (paths, watch, changed) ->
+get-default-config = (paths) ->
   entry = require.resolve paths.app.abs
 
   browser-env = ^^process.env
@@ -49,46 +49,55 @@ exports.bundle = (paths, watch, changed) ->
     config.plugins.push new webpack.optimize.DedupePlugin!
     config.plugins.push new webpack.optimize.UglifyJsPlugin!
 
-  # Enable HMR if watching.
-  if watch
-    config.entry.unshift 'webpack/hot/dev-server'
-    config.entry.unshift 'webpack-dev-server/client?http://localhost:3001'
-    config.output.public-path = 'http://localhost:3001/'
-    config.module.loaders.push do
-      test: /\.(?:js|jsx|ls)$/
-      loader: 'react-hot'
-      exclude: /node_modules/
-    config.plugins.push new webpack.HotModuleReplacementPlugin!
-    config.plugins.push new webpack.NoErrorsPlugin!
+  config
 
-  # Initialise the bundle
-  bundler = webpack config
+exports.bundle = (paths, watch, changed) ->
+  conf-path = path.join paths.app.abs, 'webpack.config.js'
+  fs.stat path.join(paths.app.abs, 'webpack.config.js'), (err, stats) ->
+    if err
+      config = get-default-config paths
+    else
+      config = require conf-path
 
-  # Just bundle or watch + serve via webpack-dev-server
-  if watch
+    # Enable HMR if watching.
+    if watch
+      config.entry.unshift 'webpack/hot/dev-server'
+      config.entry.unshift 'webpack-dev-server/client?http://localhost:3001'
+      config.output.public-path = 'http://localhost:3001/'
+      config.module.loaders.push do
+        test: /\.(?:js|jsx|ls)$/
+        loader: 'react-hot'
+        exclude: /node_modules/
+      config.plugins.push new webpack.HotModuleReplacementPlugin!
+      config.plugins.push new webpack.NoErrorsPlugin!
 
-    # Add a callback to server, passing changed files, to reload app code server-side.
-    last-build = null
-    bundler.plugin 'done', (stats) ->
-      diff = stats.compilation.file-timestamps |> Obj.filter (> last-build) |> keys
-      changed diff
-      last-build := stats.end-time
+    # Initialise the bundle
+    bundler = webpack config
 
-    bundler.plugin 'error', (err) ->
-      console.log err
+    # Just bundle or watch + serve via webpack-dev-server
+    if watch
+      # Add a callback to server, passing changed files, to reload app code server-side.
+      last-build = null
+      bundler.plugin 'done', (stats) ->
+        diff = stats.compilation.file-timestamps |> Obj.filter (> last-build) |> keys
+        changed diff
+        last-build := stats.end-time
 
-    # Start the webpack dev server
-    server = new webpack-dev-server bundler, do
-      filename: 'app.js'
-      content-base: path.join paths.app.abs, paths.public
-      hot: true # Enable hot loading
-      quiet: true
-      no-info: false
-      watch-delay: 200
+      bundler.plugin 'error', (err) ->
+        console.log err
 
-    server.listen 3001, 'localhost'
+      # Start the webpack dev server
+      server = new webpack-dev-server bundler, do
+        filename: 'app.js'
+        content-base: path.join paths.app.abs, paths.public
+        hot: true # Enable hot loading
+        quiet: true
+        no-info: true
+        watch-delay: 200
 
-  else
-    # Run once if watch is false
-    bundler.run (err, stats) ->
-      console.log 'Bundled app.js'
+      server.listen 3001, 'localhost'
+
+    else
+      # Run once if watch is false
+      bundler.run (err, stats) ->
+        console.log 'Bundled app.js'

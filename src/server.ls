@@ -1,4 +1,6 @@
-require! <[ express fs path jade bluebird body-parser ./bundler LiveScript babel/register cookie-parser ]>
+require! <[ express fs path jade bluebird body-parser ./bundler LiveScript cookie-parser babel/register ]>
+
+
 {each, values, filter, find, flatten, map, first} = require 'prelude-ls'
 
 defaults =
