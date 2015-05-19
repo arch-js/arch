@@ -52,8 +52,9 @@ change-inputs = (inputs, post-data) ->
     ReactUpdates.flushBatchedUpdates!
 
 submit-form = (form) ->
-  form.props.on-submit fake-event form
-  ReactUpdates.flushBatchedUpdates!
+  if form and form.props and form.props.on-submit
+    form.props.on-submit fake-event form
+    ReactUpdates.flushBatchedUpdates!
 
 # Public
 
@@ -102,3 +103,5 @@ module.exports =
   route-metadata: route-metadata
   process-form: process-form
   redirect: redirect
+  reset-redirect: reset-redirect
+  get-redirect: -> redirect-location

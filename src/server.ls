@@ -76,7 +76,9 @@ module.exports = (options) ->
 
 arch-get = (app, req, res, options) ->
   app.render req, res
-  .spread (meta, app-state, body) ->
+  .spread (meta, app-state, body, location) ->
+    return [302, 'Location': location, ""] unless body
+
     html = layout-render meta, body, app-state, options
     [200, {}, html]
 

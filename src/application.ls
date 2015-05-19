@@ -125,7 +125,9 @@ module.exports =
         app-state.end-transaction transaction
         .then ->
           meta = server-rendering.route-metadata root-element, app-state
-          [meta, app-state.deref!, React.render-to-string root-element]
+          body = unless (location = server-rendering.get-redirect!) and location isnt path then React.render-to-string root-element else null
+          server-rendering.reset-redirect!
+          [meta, app-state.deref!, body, location]
 
       # process a form from a particular route and render to string
       # returns a promise of [state, body, location]
