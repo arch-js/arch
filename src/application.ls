@@ -1,7 +1,7 @@
 require! <[ bluebird ./cursor ./dom ./routes ./server-rendering cookie ]>
 require! './virtual-dom-utils': 'dom-utils'
 
-{keys, each, Obj, map} = require 'prelude-ls'
+{keys, each, Obj, map, reject} = require 'prelude-ls'
 
 {span} = dom
 
@@ -100,18 +100,20 @@ module.exports =
           |> keys
           |> map (k) -> cookie.serialize(k, client-cookies[k])
 
-        app-state = init-app-state app.get-initial-state!, null, parsed-cookies
+        app-state = init-app-state app.get-initial-state!, null, []
 
         transaction = app-state.start-transaction!
 
-        # send new cookies if they are modified during transaction
+        # Don't overwrite cookies that already exist, only ones that are set while rendering
 
         app-state.get 'cookies' .on-change (cookies) ->
-          res.set('Set-Cookie', cookies);
+          newCookies = cookies |> reject (-> it in parsed-cookies);
+          res.set 'Set-Cookie', newCookies
 
         # Boot the app
 
         app.start app-state
+        app-state.get 'cookies' .update -> parsed-cookies
         app-state.get 'route' .update -> routes.resolve(route-set, path)
         root-element = app-component app-state: app-state, routes: route-set
 
