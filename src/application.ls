@@ -1,7 +1,7 @@
 require! <[ bluebird ./cursor ./dom ./routes ./server-rendering cookie ]>
 require! './virtual-dom-utils': 'dom-utils'
 
-{keys, each, Obj} = require 'prelude-ls'
+{keys, each, Obj, map} = require 'prelude-ls'
 
 {span} = dom
 
@@ -43,9 +43,6 @@ observe-page-change = (root-tree, app-state) ->
         window.scroll-to 0, 0
     , 0
 
-parse-req-cookies = (cookies) ->
-  cookies |> Obj.map -> value: it
-
 module.exports =
   # define an application instance
   create: (app) ->
@@ -54,7 +51,6 @@ module.exports =
       start: ->
         route-set = app.routes!
         path = (location.pathname + location.search + location.hash)
-        client-cookies = parse-req-cookies cookie.parse(document.cookie)
 
         root-dom-node = document.get-element-by-id "application"
 
@@ -66,7 +62,11 @@ module.exports =
         app-state = if server-state
           cursor server-state
         else
-          init-app-state app.get-initial-state!, routes.resolve(route-set, pathname), client-cookies
+          client-cookies = cookie.parse document.cookie
+          parsed-cookies = client-cookies
+            |> keys
+            |> map (k) -> cookie.serialize(k, client-cookies[k])
+          init-app-state app.get-initial-state!, routes.resolve(route-set, pathname), parsed-cookies
 
         # Boot the app
 
@@ -80,13 +80,8 @@ module.exports =
         # Whenever app state changes re-render
 
         app-state.get 'cookies' .on-change (cookies) ->
-          cookies |> keys |> each (k) ->
-            c = if cookies[k] then cookies[k].value else cookies[k]
-            unless (client-cookies[k] && client-cookies[k].value === JSON.stringify c)
-              if (c is null or c is undefined)
-                document.cookie = cookie.serialize k, null, {expires: (new Date())}
-              else
-                document.cookie = cookie.serialize k, c, cookies[k].options
+          cookies |> each (ck) ->
+            document.cookie = ck;
 
         app-state.on-change -> root.set-state app-state: app-state
 
@@ -100,21 +95,19 @@ module.exports =
       render: (req, res) ->
         path = req.original-url
         route-set = app.routes!
-        client-cookies = parse-req-cookies req.cookies
-        app-state = init-app-state app.get-initial-state!, null, client-cookies
+        client-cookies = cookie.parse req.headers.cookie
+        parsed-cookies = client-cookies
+          |> keys
+          |> map (k) -> cookie.serialize(k, client-cookies[k])
+
+        app-state = init-app-state app.get-initial-state!, null, parsed-cookies
 
         transaction = app-state.start-transaction!
 
         # send new cookies if they are modified during transaction
 
         app-state.get 'cookies' .on-change (cookies) ->
-          cookies |> keys |> each (k) ->
-            c = if cookies[k] then cookies[k].value else cookies[k]
-            unless (client-cookies[k] && client-cookies[k].value === JSON.stringify c)
-              if (c is null or c is undefined)
-                res.clear-cookie k
-              else
-                res.cookie k, c, cookies[k].options
+          res.set('Set-Cookie', cookies);
 
         # Boot the app
 
@@ -134,19 +127,16 @@ module.exports =
       process-form: (req, res) ->
         path = req.original-url
 
-        client-cookies = parse-req-cookies req.cookies
+        client-cookies = cookie.parse req.headers.cookie
+        parsed-cookies = client-cookies
+          |> keys
+          |> map (k) -> cookie.serialize(k, client-cookies[k])
 
         route-set = app.routes!
-        app-state = init-app-state app.get-initial-state!, null, client-cookies
+        app-state = init-app-state app.get-initial-state!, null, parsed-cookies
 
         app-state.get 'cookies' .on-change (cookies) ->
-          cookies |> keys |> each (k) ->
-            c = if cookies[k] then cookies[k].value else cookies[k]
-            unless (client-cookies[k] && client-cookies[k].value === JSON.stringify c)
-              if (c is null or c is undefined)
-                res.clear-cookie k
-              else
-                res.cookie k, c, cookies[k].options
+          res.set('Set-Cookie', cookies);
 
         transaction = app-state.start-transaction!
 
