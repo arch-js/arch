@@ -2,8 +2,8 @@ require! <[ webpack path webpack-dev-server fs ]>
 
 {Obj, keys} = require 'prelude-ls'
 
-get-default-config = (paths) ->
-  entry = require.resolve paths.app.abs
+get-default-config = (options) ->
+  entry = require.resolve options.app-path
 
   browser-env = ^^process.env
   browser-env.ARCH_ENV = 'browser'
@@ -18,17 +18,17 @@ get-default-config = (paths) ->
     output:
       library-target: 'var'
       library: 'Application'
-      path: path.join paths.app.abs, paths.public
+      path: path.join options.app-path, options.public-path
       filename: 'app.js'
 
     resolve:
-      root: path.join paths.app.abs, 'node_modules'
-      fallback: path.join paths.arch.abs, 'node_modules'
+      root: path.join options.app-path, 'node_modules'
+      fallback: path.join options.arch-path, 'node_modules'
       extensions: [ '', '.ls', '.js', '.jsx' ]
 
     resolve-loader:
-      root: path.join paths.arch.abs, 'node_modules'
-      fallback: path.join paths.app.abs, 'node_modules'
+      root: path.join options.arch-path, 'node_modules'
+      fallback: path.join options.app-path, 'node_modules'
 
     plugins: [ new webpack.DefinePlugin 'process.env': browser-env ]
 
@@ -51,16 +51,16 @@ get-default-config = (paths) ->
 
   config
 
-exports.bundle = (paths, watch, changed) ->
-  conf-path = path.join paths.app.abs, 'webpack.config.js'
-  fs.stat path.join(paths.app.abs, 'webpack.config.js'), (err, stats) ->
+exports.bundle = (options, changed) ->
+  conf-path = path.join options.app-path, 'webpack.config.js'
+  fs.stat path.join(options.app-path, 'webpack.config.js'), (err, stats) ->
     if err
-      config = get-default-config paths
+      config = get-default-config options
     else
       config = require conf-path
 
     # Enable HMR if watching.
-    if watch
+    if options.watch
       config.entry.unshift 'webpack/hot/dev-server'
       config.entry.unshift 'webpack-dev-server/client?http://localhost:3001'
       config.output.public-path = 'http://localhost:3001/'
@@ -75,7 +75,7 @@ exports.bundle = (paths, watch, changed) ->
     bundler = webpack config
 
     # Just bundle or watch + serve via webpack-dev-server
-    if watch
+    if options.watch
       # Add a callback to server, passing changed files, to reload app code server-side.
       last-build = null
       bundler.plugin 'done', (stats) ->
@@ -89,7 +89,7 @@ exports.bundle = (paths, watch, changed) ->
       # Start the webpack dev server
       server = new webpack-dev-server bundler, do
         filename: 'app.js'
-        content-base: path.join paths.app.abs, paths.public
+        content-base: path.join options.app-path, options.public-path
         hot: true # Enable hot loading
         quiet: true
         no-info: true

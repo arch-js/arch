@@ -4,20 +4,18 @@ require! <[ express fs path jade bluebird body-parser ./bundler LiveScript cooki
 {each, values, filter, find, flatten, map, first} = require 'prelude-ls'
 
 defaults =
+  arch-path: path.dirname path.resolve './node_modules/arch'
+  app-path: path.dirname path.resolve './package.json'
+  bundle: true
+  bundle-path: 'http://localhost:3001/app.js'
   environment: process.env.NODE_ENV or 'development'
   port: 3000
-  paths:
-    app:
-      abs: path.resolve '.'
-      rel: path.relative __dirname, path.resolve '.'
-    arch:
-      abs: path.dirname require.resolve "../package.json"
-      rel: path.relative (path.resolve '.'), (path.dirname require.resolve "../package.json")
-    public: 'dist'
+  public-path: 'dist'
+  watch: true
 
 module.exports = (options) ->
   options = ^^defaults import options
-  app = options.app or require options.paths.app.rel
+  app = require options.app-path
 
   get = (req, res) ->
     console.log "GET", req.original-url
@@ -33,40 +31,47 @@ module.exports = (options) ->
 
   start: (cb) ->
     server = express!
-    .use "/#{options.paths.public}", express.static path.join(options.paths.app.abs, options.paths.public)
+    .use "/#{options.public-path}", express.static path.join(options.app-path, options.public-path)
     .use body-parser.urlencoded extended: false
     .use cookie-parser!
     .get '*', get
     .post '*', post
 
+    start-server = ->
+      if cb
+        listener = server.listen options.port, (err) ->
+          console.log 'App is listening on', listener.address!.port
+          cb err, { server: server, listener: listener }
+      else
+        new bluebird (res, rej) ->
+          listener = server.listen options.port, ->
+            console.log 'App is listening on', listener.address!.port
+            res server: server, listener: listener
+
     # Bundle before server starts accepting requests.
     # .bundle takes a boolean of whether to watch and can take a callback which
     # allows you to hook into any watch changes.
 
-    bundler.bundle options.paths, options.environment is 'development', (ids) ->
-      done = []
-      while id = first ids
-        parents = require.cache |> values |> filter (-> !(it.id in done) and it.children |> find (.id is id)) |> flatten |> map (.id)
-        done.push id
-        parents |> each -> ids.push it
-        ids.splice 0, 1
+    if (options.bundle)
+      bundler.bundle options, (ids) ->
+        console.log('bundled');
+        done = []
+        while id = first ids
+          parents = require.cache |> values |> filter (-> !(it.id in done) and it.children |> find (.id is id)) |> flatten |> map (.id)
+          done.push id
+          parents |> each -> ids.push it
+          ids.splice 0, 1
 
-      done |> each -> delete require.cache[it]
+        done |> each -> delete require.cache[it]
 
-      try
-        app := require options.paths.app.rel
-      catch
-        console.error 'Error in changed files when restarting server'
+        try
+          app := require options.app-path
+        catch
+          console.error 'Error in changed files when restarting server'
 
-    if cb
-      listener = server.listen options.port, (err) ->
-        console.log 'App is listening on', listener.address!.port
-        cb err, { server: server, listener: listener }
+        start-server!
     else
-      new bluebird (res, rej) ->
-        listener = server.listen options.port, ->
-          console.log 'App is listening on', listener.address!.port
-          res server: server, listener: listener
+      start-server!
 
   /* test-exports */
   get: arch-get
@@ -94,8 +99,7 @@ arch-post = (app, req, res, options) ->
 __template = jade.compile-file (path.join __dirname, 'index.jade')
 
 layout-render = (meta, body, app-state, options) ->
-  bundle-path = if options.environment is 'development' then "http://localhost:3001/app.js" else "/#{options.paths.public}/app.js"
-  arch-body = __template public: options.paths.public, bundle: bundle-path, body: body, state: app-state
+  arch-body = __template public: options.public-path, bundle: options.bundle-path, body: body, state: app-state
 
   {layout, title} = meta
   layout body: arch-body, title: title
