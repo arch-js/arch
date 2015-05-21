@@ -95,7 +95,7 @@ module.exports =
       render: (req, res) ->
         path = req.original-url
         route-set = app.routes!
-        client-cookies = cookie.parse req.headers.cookie
+        client-cookies = cookie.parse (req.headers.cookie || "")
         parsed-cookies = client-cookies
           |> keys
           |> map (k) -> cookie.serialize(k, client-cookies[k])
@@ -129,7 +129,7 @@ module.exports =
       process-form: (req, res) ->
         path = req.original-url
 
-        client-cookies = cookie.parse req.headers.cookie
+        client-cookies = cookie.parse (req.headers.cookie || "")
         parsed-cookies = client-cookies
           |> keys
           |> map (k) -> cookie.serialize(k, client-cookies[k])
