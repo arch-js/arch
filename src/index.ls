@@ -16,6 +16,7 @@ redirect = (path) ->
 # Core framework namespace bundling together individual modules
 module.exports =
   application: require './application'
+  CLIENT: process.env.ARCH_ENV is 'browser'
   routes: require './routes'
   cursor: require './cursor'
   dom: dom
