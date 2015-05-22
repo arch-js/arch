@@ -17,6 +17,11 @@ module.exports = (options) ->
   options = ^^defaults import options
   app = require options.app-path
 
+  server = express!
+    .use "/#{options.public-path}", express.static path.join(options.app-path, options.public-path)
+    .use body-parser.urlencoded extended: false
+    .use cookie-parser!
+
   get = (req, res) ->
     console.log "GET", req.original-url
     arch-get app, req, res, options
@@ -29,13 +34,11 @@ module.exports = (options) ->
     .spread (status, headers, body) ->
       res.status status .set headers .send body
 
+  inst: server
   start: (cb) ->
-    server = express!
-    .use "/#{options.public-path}", express.static path.join(options.app-path, options.public-path)
-    .use body-parser.urlencoded extended: false
-    .use cookie-parser!
-    .get '*', get
-    .post '*', post
+    server
+      .get '*', get
+      .post '*', post
 
     start-server = ->
       if cb
