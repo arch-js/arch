@@ -81,12 +81,6 @@ process-form = (root-element, initial-state, post-data, path) ->
   change-inputs inputs, post-data
   submit-form form
 
-  # end of magic
-
-  return that if redirect-location
-
-  null
-
 route-metadata = (root-element, initial-state) ->
   configure-react!
 
