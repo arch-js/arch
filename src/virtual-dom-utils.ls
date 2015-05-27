@@ -1,4 +1,4 @@
-test-utils = React.addons.TestUtils
+test-utils = require 'react/lib/ReactTestUtils'
 
 {filter, find, any} = require 'prelude-ls'
 
