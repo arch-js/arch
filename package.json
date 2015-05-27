@@ -1,6 +1,6 @@
 {
   "name": "arch",
-  "version": "0.0.3a",
+  "version": "0.0.3b",
   "description": "Web application framework for React",
   "homepage": "https://github.com/redbadger/arch",
   "repository": {
@@ -46,7 +46,7 @@
     "express": "^4.10.6",
     "immutable": "^3.4.1",
     "jade": "^1.8.2",
-    "livescript-loader": "^0.1.3",
+    "livescript-loader": "0.1.3",
     "page": "https://github.com/charypar/page.js/tarball/server-side-fix",
     "prelude-ls": "^1.1.1",
     "react": "^0.13.3",
