@@ -85,6 +85,10 @@ module.exports =
 
         app-state.on-change -> root.set-state app-state: app-state
 
+        # Rerender with any post-mount changes applied.
+
+        root = React.render root-element, root-dom-node
+
         # Set up SPA navigation
 
         observe-page-change root, app-state
