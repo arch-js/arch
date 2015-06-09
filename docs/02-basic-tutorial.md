@@ -56,7 +56,7 @@ things =
   * "Eggs, beans, bacon and spam"
   * "Flying circus"
 
-module.exports = class Listing extends BaseRoute do
+module.exports = class Listing extends BaseRoute
   render: ->
     d.div do
       d.h1 "A list of useful things"
