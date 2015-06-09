@@ -48,6 +48,10 @@ require! {
   './base-route': BaseRoute
   arch
 }
+
+# Utility methods from Prelude LS
+{map, filter} = require 'prelude-ls'
+
 d = arch.DOM
 
 things =
@@ -80,7 +84,7 @@ require! <[
 ]>
 ```
 
-so that we're able to reference the component and use `prelude-ls` implementation of `map`. You can now go to http://localhost:3000/hello and see your page rendered.
+so that we're able to reference the component and use `prelude-ls` implementation of `map`. You can now go to http://localhost:3000/listing and see your page rendered.
 
 Pages (route handlers) in Arch are React components. They all share the same `props` format, specifically, they all get the
 application state as their single prop, called `app-state`. To learn more about routing, read the [routing guide](08-isomorphism-routing.md).
@@ -93,7 +97,7 @@ The result is an almost haml/slim like template language, that is pure LiveScrip
 
 ## Adding interaction
 
-What we built so far is, in essence, a static page. To add some interaction, we need our application to have state. Arch handles UI state in its most basic form the same way React itself does - using component’s `state`. Let’s make our list searchable.
+What we built so far is, in essence, a static page. To add some interaction, we need our application to have state. Arch handles UI state in its most basic form the same way React itself does - using component’s `state`. Let’s make our list searchable. In `listing.ls` add a simple form component:
 
 ```livescript
 render: ->
@@ -162,7 +166,7 @@ module.exports = class List extends React.Component
 Then we can use it in our listing route component
 
 ```livescript
-list = arch.dom require '../components/list.ls'
+list = arch.DOM require '../components/list.ls'
 
 ...
 
@@ -228,7 +232,7 @@ module.exports = arch.application.create do
     initial-state
 ```
 
-Then we need to use that list in our listing route
+Then we need to use that list in our listing route. In `listing.ls`:
 
 ```livescript
   render: ->
@@ -270,7 +274,7 @@ When the user types into the field, we `update` the query value to the value of 
 
 In Arch, the new state behind the cursor is a function of the state before the update. This lets you do in-place updates based on the previous value in a single call. (Arguably this is much less important in a single threaded application, but still has some benefits). You can learn more about how the Arch cursor works in [Cursors over Immutable Data](06-cursors-and-immutables).
 
-Let’s finally add the list of recent queries. First we need to keep track of them.
+Let’s finally add the list of recent queries. First we need to keep track of them. In `components/list.ls`:
 
 ```livescript
 module.exports = class List extends React.Component
@@ -298,7 +302,7 @@ module.exports = class List extends React.Component
 
 The list component now takes an additional prop - the list of queries to push into. Since we probably don’t want to track every single character as a new query, we’ll change the behaviour to only submit when the user presses the Enter key submitting the form. Notice the component gained some internal state again to support this behaviour. We also made a small change hiding all the filtering UI if we don’t get any query, this will be useful in a second.
 
-The initial state needs to contain an empty list of recent queries to have somewhere to push queries in.
+The initial state needs to contain an empty list of recent queries to have somewhere to push queries in. In `app.ls` let's add `queries` array to hold this list:
 
 ```livescript
 intial-state =
@@ -318,6 +322,10 @@ module.exports = arch.application.create do
 Rendering the recent queries is as simple as adding another list component to our listing page now.
 
 ```livescript
+{map, filter, take} = require 'prelude-ls'
+
+...
+
   render: ->
     query = @props.app-state.get \state.query
     things = @props.app-state.get \state.things
