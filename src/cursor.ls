@@ -128,7 +128,9 @@ Cursor.prototype.start-transaction = ->
   t = new UpdateTransaction!
   @_root._transactions.push t
 
-  t
+Cursor.prototype.is-empty = ->
+  data = @_root._data.get-in @_path
+  typeof data is 'undefined' or data is null
 
 Cursor.prototype.end-transaction = (transaction) ->
   i = @_root._transactions.index-of transaction
