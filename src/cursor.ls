@@ -22,7 +22,7 @@ array-cursor = (root, data, len, path) ->
   array._updates = []
 
   # Support all the cursor API
-  array{get, deref, raw, update, _swap, on-change} = Cursor.prototype
+  array{get, deref, raw, update, is-empty, _swap, on-change} = Cursor.prototype
 
   return array
 
@@ -127,8 +127,11 @@ Cursor.prototype.on-change = (cbk) ->
 Cursor.prototype.start-transaction = ->
   t = new UpdateTransaction!
   @_root._transactions.push t
+  return t
 
-  t
+Cursor.prototype.is-empty = ->
+  data = @_root._data.get-in @_path
+  typeof data is 'undefined' or data is null
 
 Cursor.prototype.end-transaction = (transaction) ->
   i = @_root._transactions.index-of transaction

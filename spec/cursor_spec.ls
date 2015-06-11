@@ -297,3 +297,16 @@ describe "cursor" (_) ->
       .finally done
 
       expect log .to-equal ["first", "second"]
+
+  describe "is-empty", (_) ->
+    it "returns true if data is null" ->
+      data = cursor raw-data
+      expect(data.get "empty_field" .is-empty!) .to-equal true
+
+    it "returns true if data is undefined" ->
+      data = cursor raw-data
+      expect(data.get "not_defined" .is-empty!) .to-equal true
+
+    it "returns false if data is defined" ->
+      data = cursor raw-data
+      expect(data.get "person" .is-empty!) .to-equal false
