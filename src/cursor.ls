@@ -22,7 +22,7 @@ array-cursor = (root, data, len, path) ->
   array._updates = []
 
   # Support all the cursor API
-  array{get, deref, raw, update, _swap, on-change} = Cursor.prototype
+  array{get, deref, raw, update, is-empty, _swap, on-change} = Cursor.prototype
 
   return array
 
