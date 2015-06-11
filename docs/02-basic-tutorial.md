@@ -359,6 +359,8 @@ Let’s create a separate module that does what we need.
 # observers/github-search.ls
 require! {'isomorphic-fetch': 'fetch'}
 
+{map} = require 'prelude-ls'
+
 module.exports = (query, results) ->
   query.on-change ->
     fetch "https://api.github.com/search/users?q=#{it}"
