@@ -40,6 +40,7 @@
     "babel-loader": "^5.1.4",
     "bluebird": "^2.9.27",
     "body-parser": "^1.12.4",
+    "express": "^4.12.4",
     "immutable": "^3.7.3",
     "jade": "^1.10.0",
     "livescript": "^1.4.0",
