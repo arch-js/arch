@@ -1,4 +1,4 @@
-test-utils = React.addons.TestUtils
+test-utils = require 'react/lib/ReactTestUtils'
 
 extract-route = (tree) ->
   routes = test-utils.find-all-in-rendered-tree tree, ->
