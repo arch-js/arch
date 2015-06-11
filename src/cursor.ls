@@ -127,6 +127,7 @@ Cursor.prototype.on-change = (cbk) ->
 Cursor.prototype.start-transaction = ->
   t = new UpdateTransaction!
   @_root._transactions.push t
+  return t
 
 Cursor.prototype.is-empty = ->
   data = @_root._data.get-in @_path
