@@ -1,6 +1,8 @@
 Arch
 ======
 
+[![Circle CI](https://circleci.com/gh/arch-js/arch.svg?style=svg)](https://circleci.com/gh/arch-js/arch)
+
 Web application framework for React.
 
 ## About
