@@ -15,9 +15,11 @@ To create an Arch application create a new directory and run `arch-cli init` ins
 
 This will generate an application skeleton. You can start the application by running
 
-    arch-cli s
+    arch-cli s -w
 
-and access the application on <http://localhost:3000>
+and access the application on <http://localhost:3000>.
+The options `-w` makes the server `w`atch the source files and restart one one has changed
+so you can live experiment.
 
 ## Add a route
 
