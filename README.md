@@ -17,6 +17,10 @@ behind the decision), they are fully isomorphic out of the box and
 Arch comes with it's own Node.js based server, Webpack bundler
 and a CLI to help you get started.
 
+## Video
+
+Watch Arch [introduction talk](https://www.youtube.com/watch?v=uHNv1ymaXSU) by Viktor and Tiago at React London Meetup.
+
 ## Examples
 
 For example code, see [demos from the introduction talk](http://github.com/charypar/arch-talk)
