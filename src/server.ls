@@ -29,7 +29,7 @@ module.exports = (options) ->
       res.status status .set headers .send body
 
   post = (req, res) ->
-    console.log "POST", req.original-url, req.body
+    console.log "POST", req.original-url
     arch-post app, req, res, options
     .spread (status, headers, body) ->
       res.status status .set headers .send body
