@@ -1,5 +1,5 @@
 # Checkout website
-# git clone git@github.com:arch-js/arch-js.github.io.git
+git clone git@github.com:arch-js/arch-js.github.io.git
 
 # Copy Docs
 
