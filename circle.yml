@@ -1,6 +1,6 @@
 deployment:
   master:
-    branch: master
+    branch: [master, build-docs]
     owner: arch-js
     commands:
       - ./build-docs.sh
