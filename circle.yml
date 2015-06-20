@@ -3,4 +3,5 @@ deployment:
     branch: [master, build-docs]
     owner: arch-js
     commands:
+      - git clone git@github.com:arch-js/arch-js.github.io.git
       - ./build-docs.sh
