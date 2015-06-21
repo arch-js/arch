@@ -19,10 +19,9 @@ done
 
 rm temp
 
-echo $now
-echo "Doc updates $now"
-
 # Commit and push / submit pull request
 cd ../arch-js.github.io
+git config user.name "archbot"
+git config user.email "robbie.mccorkell+archbot@red-badger.com"
 git add .
 git commit -m "Doc updates $now"
