@@ -448,4 +448,4 @@ This concludes the introductory Arch tutorial. You may have noticed that Arch fo
 
 In this tutorial, you’ve seen how there are various scopes of state – sizes of the state loop: component local, global - shared between components, global - shared between the app and an API.
 
-The latter case demonstrated one use-case for state observers, but you can extract various different common tasks into state observers (form validation, domain logic computations, service integrations, metrics collection, persistence…). See [Application as Data]() for a larger discussion of the concept of central state.
+The latter case demonstrated one use-case for state observers, but you can extract various different common tasks into state observers (form validation, domain logic computations, service integrations, metrics collection, persistence…). See [Application as Data](05-application-as-data.md) for a larger discussion of the concept of central state.
