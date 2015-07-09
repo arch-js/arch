@@ -85,6 +85,8 @@ exports.bundle = (paths, watch, changed) ->
       quiet: true
       no-info: false
       watch-delay: 200
+      headers: 
+        'Access-Control-Allow-Origin': '*'
 
     server.listen 3001, 'localhost'
 
