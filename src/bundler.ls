@@ -28,6 +28,7 @@ exports.bundle = (options, changed) ->
 
   # Just bundle or watch + serve via webpack-dev-server
   if options.watch
+
     # Add a callback to server, passing changed files, to reload app code server-side.
     last-build = null
     bundler.plugin 'done', (stats) ->
@@ -51,7 +52,9 @@ exports.bundle = (options, changed) ->
 
     server.listen 3001, 'localhost'
 
-  else
+  else if options.bundle
     # Run once if watch is false
     bundler.run (err, stats) ->
       console.log 'Bundled app.js'
+  else
+    console.warn "Built-in watch and bundle disabled. Compile your own client bundle!"
