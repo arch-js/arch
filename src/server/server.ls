@@ -2,27 +2,16 @@ require! <[
   express path
   bluebird body-parser
   ../bundler livescript babel/register
+  ./paths ./get-config
 ]>
 
 { render-body } = require './render'
 
 {each, values, filter, find, flatten, map, first} = require 'prelude-ls'
 
-defaults =
-  environment: process.env.NODE_ENV or 'development'
-  port: process.env.ARCH_PORT or 3000
-  paths:
-    app:
-      abs: path.resolve '.'
-      rel: path.relative __dirname, path.resolve '.'
-    arch:
-      abs: path.dirname require.resolve "../../package.json"
-      rel: path.relative (path.resolve '.'), (path.dirname require.resolve "../../package.json")
-    public: 'dist'
-
-module.exports = (options) ->
-  options = ^^defaults import options
-  app = options.app or require options.paths.app.rel
+module.exports = (opts = {}) ->
+  options = get-config opts
+  app = require paths.app.rel
 
   get = (req, res) ->
     console.log "GET", req.original-url
@@ -46,7 +35,7 @@ module.exports = (options) ->
 
   start: (cb) ->
     server = express!
-    .use "/#{options.paths.public}", express.static path.join(options.paths.app.abs, options.paths.public)
+    .use "/#{options.public}", express.static path.join(paths.app.abs, options.public)
     .use body-parser.urlencoded extended: false
     .get '*', get
     .post '*', post
@@ -55,7 +44,7 @@ module.exports = (options) ->
     # .bundle takes a boolean of whether to watch and can take a callback which
     # allows you to hook into any watch changes.
 
-    bundler.bundle options.paths, options.environment is 'development', (ids) ->
+    bundler.bundle paths, options.environment is 'development', (ids) ->
       done = []
       while id = first ids
         parents = require.cache |> values |> filter (-> !(it.id in done) and it.children |> find (.id is id)) |> flatten |> map (.id)
@@ -66,7 +55,7 @@ module.exports = (options) ->
       done |> each -> delete require.cache[it]
 
       try
-        app := require options.paths.app.rel
+        app := require paths.app.rel
       catch
         console.error 'Error in changed files when restarting server'
 
@@ -99,3 +88,5 @@ arch-post = (app, url, post-data, options) ->
 
     html = render-body meta, body, app-state, options
     [200, {}, html]
+
+__template = jade.compile-file (path.join __dirname, 'index.jade')
