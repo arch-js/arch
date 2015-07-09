@@ -1,51 +1,10 @@
 require! <[ webpack path webpack-dev-server ]>
+baseConfig = require './webpack.config.js'
 
 {Obj, keys} = require 'prelude-ls'
 
 exports.bundle = (paths, watch, changed) ->
-  entry = require.resolve paths.app.abs
-
-  browser-env = ^^process.env
-  browser-env.ARCH_ENV = 'browser'
-  browser-env = browser-env |> Obj.map JSON.stringify
-
-  # Basic configuration
-  config =
-    entry: [ './' + path.basename entry ]
-
-    context: path.dirname entry
-
-    output:
-      library-target: 'var'
-      library: 'Application'
-      path: path.join paths.app.abs, paths.public
-      filename: 'app.js'
-
-    resolve:
-      root: path.join paths.app.abs, 'node_modules'
-      fallback: path.join paths.arch.abs, 'node_modules'
-      extensions: [ '', '.ls', '.js', '.jsx' ]
-
-    resolve-loader:
-      root: path.join paths.arch.abs, 'node_modules'
-      fallback: path.join paths.app.abs, 'node_modules'
-
-    plugins: [ new webpack.DefinePlugin 'process.env': browser-env ]
-
-    module:
-      pre-loaders: [
-        * test: /\.ls$/
-          loader: 'livescript-loader'
-          exclude: /node_modules/
-        * test: /\.(?:js|jsx)$/
-          loader: 'babel-loader'
-          exclude: /node_modules/
-      ]
-      loaders: []
-      post-loaders: []
-
-    devtool: \source-map
-
+  config = baseConfig
   # Optimise for production.
   if process.env.NODE_ENV is 'production'
     config.plugins.push new webpack.optimize.DedupePlugin!
