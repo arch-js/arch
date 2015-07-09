@@ -11,3 +11,4 @@ module.exports =
       rel: path.relative (path.resolve '.'), (path.dirname require.resolve "../package.json")
     public: 'dist'
   port: 3000
+  watch: process.env.NODE_ENV isnt 'production'

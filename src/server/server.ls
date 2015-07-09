@@ -44,7 +44,7 @@ module.exports = (opts = {}) ->
     # .bundle takes a boolean of whether to watch and can take a callback which
     # allows you to hook into any watch changes.
 
-    bundler.bundle options.paths, options.environment is 'development', (ids) ->
+    bundler.bundle options, (ids) ->
       done = []
       while id = first ids
         parents = require.cache |> values |> filter (-> !(it.id in done) and it.children |> find (.id is id)) |> flatten |> map (.id)
