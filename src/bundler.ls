@@ -7,7 +7,7 @@ exports.bundle = (options, changed) ->
   config = baseConfig
 
   # Optimise for production.
-  if process.env.NODE_ENV is 'production'
+  if options.minify
     config.plugins.push new webpack.optimize.DedupePlugin!
     config.plugins.push new webpack.optimize.UglifyJsPlugin!
 

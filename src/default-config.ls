@@ -2,6 +2,7 @@ require! <[ path ]>
 
 module.exports =
   environment: process.env.NODE_ENV or 'development'
+  minify: process.env.NODE_ENV is 'production'
   paths:
     app:
       abs: path.resolve '.'
