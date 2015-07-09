@@ -1,6 +1,10 @@
-require! <[ path ]>
+require! <[ path rc ]>
 
-module.exports =
+# RC automatically overwrites these with env variables.
+# For example to edit environment set arch_environment
+# To overwrite a nested variable use double underscore i.e. arch_paths__public
+
+module.exports = rc 'arch', do
   bundle: true
   debug: false
   environment: process.env.NODE_ENV or 'development'

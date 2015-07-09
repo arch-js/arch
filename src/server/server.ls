@@ -2,15 +2,17 @@ require! <[
   express path
   bluebird body-parser
   ../bundler livescript babel/register
-  ./paths ./get-config
+  ./default-config
 ]>
 
 { render-body } = require './render'
 
-{each, values, filter, find, flatten, map, first} = require 'prelude-ls'
+{ each, values, filter, find, flatten, map, first } = require 'prelude-ls'
 
-module.exports = (opts = {}) ->
-  options = get-config opts
+module.exports = (server-options) ->
+  default-options = default-config # These defaults already have env overwrites applied to them. See default-config.
+  options = deep-extend default-options, server-options
+
   app = require options.paths.app.rel
 
   get = (req, res) ->

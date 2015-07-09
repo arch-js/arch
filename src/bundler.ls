@@ -1,10 +1,16 @@
-require! <[ webpack path webpack-dev-server ]>
-baseConfig = require './webpack.config.js'
+require! <[ webpack path webpack-dev-server fs deep-extend ]>
+arch-webpack-config = require './webpack.config'
 
 {Obj, keys} = require 'prelude-ls'
 
 exports.bundle = (options, changed) ->
-  config = baseConfig
+  base-conf = arch-webpack-config options
+  user-conf = {}
+
+  try
+    user-conf = require path.join(options.paths.app.abs, 'webpack.config.js')
+
+  config = deep-extend base-conf, user-conf
 
   # Optimise for production.
   if options.minify
