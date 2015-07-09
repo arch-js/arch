@@ -11,7 +11,7 @@ require! <[
 
 module.exports = (opts = {}) ->
   options = get-config opts
-  app = require paths.app.rel
+  app = require options.paths.app.rel
 
   get = (req, res) ->
     console.log "GET", req.original-url
@@ -35,7 +35,7 @@ module.exports = (opts = {}) ->
 
   start: (cb) ->
     server = express!
-    .use "/#{options.public}", express.static path.join(paths.app.abs, options.public)
+    .use "/#{options.paths.public}", express.static path.join(options.paths.app.abs, options.paths.public)
     .use body-parser.urlencoded extended: false
     .get '*', get
     .post '*', post
@@ -44,7 +44,7 @@ module.exports = (opts = {}) ->
     # .bundle takes a boolean of whether to watch and can take a callback which
     # allows you to hook into any watch changes.
 
-    bundler.bundle paths, options.environment is 'development', (ids) ->
+    bundler.bundle options.paths, options.environment is 'development', (ids) ->
       done = []
       while id = first ids
         parents = require.cache |> values |> filter (-> !(it.id in done) and it.children |> find (.id is id)) |> flatten |> map (.id)
@@ -55,7 +55,7 @@ module.exports = (opts = {}) ->
       done |> each -> delete require.cache[it]
 
       try
-        app := require paths.app.rel
+        app := require options.paths.app.rel
       catch
         console.error 'Error in changed files when restarting server'
 

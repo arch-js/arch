@@ -1,3 +1,3 @@
-require! <[ rc ./default-config ]>
+require! <[ rc ./default-config deep-extend ]>
 
-module.exports = (opts = {}) -> rc 'arch', ^^default-config import opts
+module.exports = (opts = {}) -> rc 'arch', deep-extend(default-config, opts)
