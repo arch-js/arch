@@ -1,6 +1,6 @@
 {
   "name": "arch",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Web application framework for React",
   "homepage": "https://github.com/redbadger/arch",
   "repository": {
