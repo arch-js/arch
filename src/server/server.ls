@@ -28,13 +28,21 @@ module.exports = (options) ->
     console.log "GET", req.original-url
     arch-get app, req.original-url, options
     .spread (status, headers, body) ->
-      res.status status .set headers .send body
+      res
+        .set 'Content-Type': 'text/html; charset=utf-8'
+        .status status
+        .set headers
+        .send body
 
   post = (req, res) ->
     console.log "POST", req.original-url, req.body
     arch-post app, req.original-url, req.body, options
     .spread (status, headers, body) ->
-      res.status status .set headers .send body
+      res
+        .set 'Content-Type': 'text/html; charset=utf-8'
+        .status status
+        .set headers
+        .send body
 
   start: (cb) ->
     server = express!
