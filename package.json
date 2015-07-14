@@ -50,7 +50,8 @@
     "react": "^0.13.3",
     "react-hot-loader": "^1.2.7",
     "webpack": "^1.9.10",
-    "webpack-dev-server": "^1.9.0"
+    "webpack-dev-server": "^1.9.0",
+    "xss-filters": "^1.2.4"
   },
   "devDependencies": {
     "gulp": "^3.9.0",
