@@ -19,8 +19,8 @@ gulp.task 'compile-ls' ->
     .pipe gulp.dest 'lib'
 
 gulp.task 'copy-jade' ->
-  gulp.src 'src/index.jade'
-    .pipe gulp.dest 'lib'
+  gulp.src 'src/server/index.jade'
+    .pipe gulp.dest 'lib/server'
 
 gulp.task 'watch' ->
   gulp.watch 'src/**/*.ls', [ 'compile-ls' ]

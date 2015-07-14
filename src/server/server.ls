@@ -1,4 +1,4 @@
-require! <[ express fs path jade bluebird body-parser ./bundler livescript babel/register xss-filters ]>
+require! <[ express fs path jade bluebird body-parser ../bundler livescript babel/register xss-filters ]>
 {each, values, filter, find, flatten, map, first} = require 'prelude-ls'
 
 defaults =
@@ -9,8 +9,8 @@ defaults =
       abs: path.resolve '.'
       rel: path.relative __dirname, path.resolve '.'
     arch:
-      abs: path.dirname require.resolve "../package.json"
-      rel: path.relative (path.resolve '.'), (path.dirname require.resolve "../package.json")
+      abs: path.dirname require.resolve "../../package.json"
+      rel: path.relative (path.resolve '.'), (path.dirname require.resolve "../../package.json")
     public: 'dist'
 
 module.exports = (options) ->
