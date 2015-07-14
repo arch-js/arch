@@ -1,4 +1,4 @@
-require! <[ bluebird ./cursor ./dom ./routes ./server-rendering ]>
+require! <[ bluebird ./cursor ./dom ./routes ./server-rendering lodash/string/unescape ]>
 require! './virtual-dom-utils': 'dom-utils'
 
 {span} = dom
@@ -55,7 +55,7 @@ module.exports =
         # Initialise app state
 
         state-node = document.get-element-by-id "arch-state"
-        server-state = JSON.parse state-node.text
+        server-state = JSON.parse unescape state-node.text
 
         app-state = if server-state
           cursor server-state
