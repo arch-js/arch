@@ -3,6 +3,7 @@ require! {
   fs
   path
   bluebird
+  '../src/server/render'
 }
 
 describe "server" (_) ->
@@ -47,6 +48,27 @@ describe "server" (_) ->
       .finally ->
         expect failed .to-be true
         done!
+
+    describe "dumping state" (_) ->
+      it "stringifies and escapes state when rendering" !->
+        meta =
+          layout: -> "Test #{it.body} test"
+          title: 'Hello'
+
+        spy-on render, 'stringifyState' .and.call-through!
+        spy-on render, 'escapeState' .and.call-through!
+        output = render.render-body meta, 'body', { unsafe: '</script><script>alert("xss")</script>' }, paths: { layouts: support-templates, public: 'dist' }
+        expect render.stringify-state .to-have-been-called!
+        expect render.escape-state .to-have-been-called!
+
+      it "stringifies state to JSON" ->
+        state = { a: true, b: false };
+        stringify = -> JSON.parse (render.stringify-state state)
+        expect stringify .not.to-throw!
+
+      it "escapes injected script tags" ->
+        state = '</script><script>alert("hi")</script>'
+        expect (render.escape-state state) .not.to-match /^\<\/script>/
 
   describe "form processing" (_) ->
     it "passes through to application's form-processing"

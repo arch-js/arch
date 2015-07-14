@@ -1,4 +1,11 @@
-require! <[ express fs path jade bluebird body-parser ../bundler livescript babel/register xss-filters ]>
+require! <[
+  express path
+  bluebird body-parser
+  ../bundler livescript babel/register
+]>
+
+{ render-body } = require './render'
+
 {each, values, filter, find, flatten, map, first} = require 'prelude-ls'
 
 defaults =
@@ -68,13 +75,12 @@ module.exports = (options) ->
   /* test-exports */
   get: arch-get
   post: arch-post
-  render: layout-render
   /* end-test-exports */
 
 arch-get = (app, url, options) ->
   app.render url
   .spread (meta, app-state, body) ->
-    html = layout-render meta, body, app-state, options
+    html = render-body meta, body, app-state, options
     [200, {}, html]
 
 arch-post = (app, url, post-data, options) ->
@@ -83,15 +89,5 @@ arch-post = (app, url, post-data, options) ->
     # FIXME build a full URL for location to comply with HTTP
     return [302, 'Location': location, ""] unless body
 
-    html = layout-render meta, body, app-state, options
+    html = render-body meta, body, app-state, options
     [200, {}, html]
-
-__template = jade.compile-file (path.join __dirname, 'index.jade')
-
-layout-render = (meta, body, app-state, options) ->
-  stringify-filter = (k, v) -> if typeof v is 'string' then return xss-filters.inHTMLData v else return v
-  bundle-path = if options.environment is 'development' then "http://localhost:3001/app.js" else "/#{options.paths.public}/app.js"
-  arch-body = __template public: options.paths.public, bundle: bundle-path, body: body, state: JSON.stringify app-state, stringify-filter
-
-  {layout, title} = meta
-  layout body: arch-body, title: title
