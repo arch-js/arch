@@ -45,6 +45,7 @@
     "jade": "^1.10.0",
     "livescript": "^1.4.0",
     "livescript-loader": "^0.1.5",
+    "lodash": "^3.10.0",
     "page": "^1.6.3",
     "prelude-ls": "^1.1.2",
     "react": "^0.13.3",
