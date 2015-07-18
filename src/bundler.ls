@@ -44,6 +44,8 @@ exports.bundle = (paths, watch, changed) ->
       loaders: []
       post-loaders: []
 
+    devtool: \source-map
+
   # Optimise for production.
   if process.env.NODE_ENV is 'production'
     config.plugins.push new webpack.optimize.DedupePlugin!
@@ -85,7 +87,7 @@ exports.bundle = (paths, watch, changed) ->
       quiet: true
       no-info: false
       watch-delay: 200
-      headers: 
+      headers:
         'Access-Control-Allow-Origin': '*'
 
     server.listen 3001, 'localhost'
