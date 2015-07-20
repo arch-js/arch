@@ -47,12 +47,14 @@
     "jade": "^1.8.2",
     "livescript": "^1.4.0",
     "livescript-loader": "^0.1.5",
+    "lodash": "^3.10.0",
     "page": "^1.6.3",
     "prelude-ls": "^1.1.2",
     "react": "^0.13.3",
     "react-hot-loader": "^1.1.4",
     "webpack": "^1.7.2",
-    "webpack-dev-server": "^1.7.0"
+    "webpack-dev-server": "^1.7.0",
+    "xss-filters": "^1.2.4"
   },
   "devDependencies": {
     "gulp": "^3.8.10",

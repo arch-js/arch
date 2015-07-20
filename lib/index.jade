@@ -1,6 +1,6 @@
 #application
   != body
 script(type='application/json' id='arch-state')
-  != JSON.stringify(state)
+  != state
 script(type='text/javascript' src=bundle)
 script Application.start();

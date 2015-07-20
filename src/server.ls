@@ -1,4 +1,4 @@
-require! <[ express fs path jade bluebird body-parser ./bundler livescript cookie-parser babel/register ]>
+require! <[ express fs path jade bluebird body-parser ./bundler livescript cookie-parser babel/register xss-filters ]>
 
 
 {each, values, filter, find, flatten, map, first} = require 'prelude-ls'
@@ -102,7 +102,8 @@ arch-post = (app, req, res, options) ->
 __template = jade.compile-file (path.join __dirname, 'index.jade')
 
 layout-render = (meta, body, app-state, options) ->
-  arch-body = __template public: options.public-path, bundle: options.bundle-path, body: body, state: app-state
+  stringify-state = (k, v) -> if typeof v is 'string' then return xss-filters.inHTMLData v else return v
+  arch-body = __template public: options.public-path, bundle: options.bundle-path, body: body, state: JSON.stringify(app-state, stringify-state)
 
   {layout, title} = meta
   layout body: arch-body, title: title

@@ -1,5 +1,6 @@
 require! <[ bluebird ./cursor ./dom ./routes ./server-rendering cookie ]>
 require! './virtual-dom-utils': 'dom-utils'
+unesc = require 'lodash/string/unescape'
 
 {keys, each, Obj, map, reject} = require 'prelude-ls'
 
@@ -57,7 +58,7 @@ module.exports =
         # Initialise app state
 
         state-node = document.get-element-by-id "arch-state"
-        server-state = JSON.parse state-node.text
+        server-state = JSON.parse unesc(state-node.text)
 
         app-state = if server-state
           cursor server-state
