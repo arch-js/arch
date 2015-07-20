@@ -2,7 +2,7 @@ require! <[
   express path
   bluebird body-parser
   ../bundler livescript babel/register
-  ./default-config
+  ../default-config deep-extend
 ]>
 
 { render-body } = require './render'
@@ -91,4 +91,3 @@ arch-post = (app, url, post-data, options) ->
     html = render-body meta, body, app-state, options
     [200, {}, html]
 
-__template = jade.compile-file (path.join __dirname, 'index.jade')
