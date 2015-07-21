@@ -13,7 +13,7 @@ module.exports = (server-options) ->
   default-options = default-config # These defaults already have env overwrites applied to them. See default-config.
   options = deep-extend default-options, server-options
 
-  app = require options.paths.app.rel
+  app = require options.app-path
 
   get = (req, res) ->
     console.log "GET", req.original-url
@@ -37,7 +37,7 @@ module.exports = (server-options) ->
 
   start: (cb) ->
     server = express!
-    .use "/#{options.paths.public}", express.static path.join(options.paths.app.abs, options.paths.public)
+    .use "/#{options.public}", express.static path.join(options.app-path, options.public)
     .use body-parser.urlencoded extended: false
     .get '*', get
     .post '*', post
@@ -57,7 +57,7 @@ module.exports = (server-options) ->
       done |> each -> delete require.cache[it]
 
       try
-        app := require options.paths.app.rel
+        app := require options.app-path
       catch
         console.error 'Error in changed files when restarting server'
 

@@ -8,7 +8,7 @@ exports.bundle = (options, changed) ->
   user-conf = {}
 
   try
-    user-conf = require path.join(options.paths.app.abs, 'webpack.config.js')
+    user-conf = require path.join(options.app-path, 'webpack.config.js')
 
   config = deep-extend base-conf, user-conf
 
@@ -48,7 +48,7 @@ exports.bundle = (options, changed) ->
     # Start the webpack dev server
     server = new webpack-dev-server bundler, do
       filename: 'app.js'
-      content-base: path.join options.paths.app.abs, options.paths.public
+      content-base: path.join options.app-path, options.public
       hot: true # Enable hot loading
       quiet: true
       no-info: false

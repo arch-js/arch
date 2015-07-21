@@ -5,10 +5,9 @@ require! {
   webpack
 }
 
-paths = config.paths;
-entry-point = require.resolve paths.app.abs
-app-modules = path.join paths.app.abs, 'node_modules'
-arch-modules = path.join paths.arch.abs, 'node_modules'
+entry-point = require.resolve config.app-path
+app-modules = path.join config.app-path, 'node_modules'
+arch-modules = path.join config.arch-path, 'node_modules'
 
 module.exports = (sever-options) ->
   context: path.dirname entry-point
@@ -16,7 +15,7 @@ module.exports = (sever-options) ->
   output:
     library-target: 'var'
     library: 'Application'
-    path: path.join paths.app.abs, paths.public
+    path: path.join config.app-path, config.public
     filename: 'app.js'
   module:
     loaders: []
