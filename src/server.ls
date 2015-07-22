@@ -102,8 +102,7 @@ arch-post = (app, req, res, options) ->
 __template = jade.compile-file (path.join __dirname, 'index.jade')
 
 layout-render = (meta, body, app-state, options) ->
-  stringify-state = (k, v) -> if typeof v is 'string' then return xss-filters.inHTMLData v else return v
-  arch-body = __template public: options.public-path, bundle: options.bundle-path, body: body, state: JSON.stringify(app-state, stringify-state)
+  arch-body = __template public: options.public-path, bundle: options.bundle-path, body: body, state: (app-state |> JSON.stringify |> xss-filters.inHTMLData)
 
   {layout, title} = meta
   layout body: arch-body, title: title
