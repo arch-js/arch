@@ -13,6 +13,9 @@ do
   # Run through prettifier
   tidy-markdown < $file > temp
 
+  # Replace .md links with .html
+  sed -i -e 's/.md/.html/g' temp
+
   # Add frontmatter and copy to website
   echo $'---\n\n---\n' | cat - temp > ../arch-js.github.io/docs/$(basename "$file")
 done
