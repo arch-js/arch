@@ -129,9 +129,6 @@ Cursor.prototype.start-transaction = ->
   @_root._transactions.push t
   return t
 
-Cursor.prototype.has-listener = ->
-  @listeners!.length > 0
-
 Cursor.prototype.listeners = ->
   key = join '.', @_path
   if @_root._listeners[key] instanceof Array then @_root._listeners[key].slice! else []
