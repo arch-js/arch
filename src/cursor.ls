@@ -130,8 +130,11 @@ Cursor.prototype.start-transaction = ->
   return t
 
 Cursor.prototype.has-listener = ->
+  @listeners!.length > 0
+
+Cursor.prototype.listeners = ->
   key = join '.', @_path
-  @_root._listeners[key] instanceof Array && @_root._listeners[key].length > 0
+  if @_root._listeners[key] instanceof Array then @_root._listeners[key].slice! else []
 
 Cursor.prototype.is-empty = ->
   data = @_root._data.get-in @_path

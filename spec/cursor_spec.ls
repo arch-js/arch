@@ -298,6 +298,20 @@ describe "cursor" (_) ->
 
       expect log .to-equal ["first", "second"]
 
+  describe "listeners", (_) ->
+    it "returns an array of listeners at the cursor's current path" ->
+      data = cursor raw-data
+      fn = -> null
+      data.on-change fn
+
+      expect(data.listeners()[0]) .to-equal fn
+
+    it "returns an empty array when no listeners are present" ->
+      data = cursor raw-data
+
+      expect(data.listeners! instanceof Array) .to-equal true
+      expect(data.listeners!.length) .to-equal 0
+
   describe "has-listener", (_) ->
     it "returns true if the cursor has a listener at its current path" ->
       data = cursor raw-data
