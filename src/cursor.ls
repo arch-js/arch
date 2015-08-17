@@ -129,6 +129,10 @@ Cursor.prototype.start-transaction = ->
   @_root._transactions.push t
   return t
 
+Cursor.prototype.has-listener = ->
+  key = join '.', @_path
+  @_root._listeners[key] instanceof Array && @_root._listeners[key].length > 0
+
 Cursor.prototype.is-empty = ->
   data = @_root._data.get-in @_path
   typeof data is 'undefined' or data is null

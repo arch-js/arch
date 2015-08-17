@@ -298,6 +298,19 @@ describe "cursor" (_) ->
 
       expect log .to-equal ["first", "second"]
 
+  describe "has-listener", (_) ->
+    it "returns true if the cursor has a listener at its current path" ->
+      data = cursor raw-data
+      data
+        .get 'person'
+        .on-change -> null
+
+      expect(data.get('person').has-listener!) .to-equal true
+
+    it "returns false if the cursor has no listener at its current path" ->
+      data = cursor raw-data
+      expect(data.has-listener!) .to-equal false
+
   describe "is-empty", (_) ->
     it "returns true if data is null" ->
       data = cursor raw-data
