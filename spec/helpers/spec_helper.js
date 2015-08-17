@@ -1,1 +1,1 @@
-require('LiveScript');
+require('livescript');

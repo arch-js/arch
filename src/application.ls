@@ -163,4 +163,3 @@ module.exports =
           body = unless (location = server-rendering.get-redirect!) and location isnt path then React.render-to-string root-element else null
 
           [meta, app-state.deref!, body, location]
-
