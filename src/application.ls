@@ -132,6 +132,7 @@ module.exports =
       # process a form from a particular route and render to string
       # returns a promise of [state, body, location]
       process-form: (req, res) ->
+        var root-element
         path = req.original-url
 
         client-cookies = cookie.parse (req.headers.cookie || "")
@@ -159,7 +160,7 @@ module.exports =
         .then ->
           form-processing-transaction = app-state.start-transaction!
 
-          root-element = app-component app-state: app-state, routes: route-set
+          root-element := app-component app-state: app-state, routes: route-set
 
           # Process the form data
 
