@@ -152,13 +152,19 @@ module.exports =
         app.start app-state
         app-state.get 'cookies' .update -> parsed-cookies
         app-state.get 'route' .update -> routes.resolve(route-set, path)
-        root-element = app-component app-state: app-state, routes: route-set
 
-        # Process the form
-
-        server-rendering.process-form root-element, app-state, req.body, path
+        # Start form processing after initial render
 
         app-state.end-transaction transaction
+        .then ->
+          form-processing-transaction = app-state.start-transaction!
+
+          root-element = app-component app-state: app-state, routes: route-set
+
+          # Process the form data
+
+          server-rendering.process-form root-element, app-state, req.body, path
+          return app-state.end-trasaction form-processing-transaction
         .then ->
           meta = server-rendering.route-metadata root-element, app-state
           body = unless (location = server-rendering.get-redirect!) and location isnt path then React.render-to-string root-element else null
