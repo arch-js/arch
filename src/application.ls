@@ -164,7 +164,7 @@ module.exports =
           # Process the form data
 
           server-rendering.process-form root-element, app-state, req.body, path
-          return app-state.end-trasaction form-processing-transaction
+          return app-state.end-transaction form-processing-transaction
         .then ->
           meta = server-rendering.route-metadata root-element, app-state
           body = unless (location = server-rendering.get-redirect!) and location isnt path then React.render-to-string root-element else null
