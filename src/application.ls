@@ -140,7 +140,7 @@ module.exports =
           |> map (k) -> cookie.serialize(k, client-cookies[k])
 
         route-set = app.routes!
-        app-state = init-app-state app.get-initial-state!, null, parsed-cookies
+        app-state = init-app-state app.get-initial-state!, null, []
 
         app-state.get 'cookies' .on-change (cookies) ->
           res.set('Set-Cookie', cookies);
@@ -150,6 +150,7 @@ module.exports =
         # Boot the app
 
         app.start app-state
+        app-state.get 'cookies' .update -> parsed-cookies
         app-state.get 'route' .update -> routes.resolve(route-set, path)
         root-element = app-component app-state: app-state, routes: route-set
 
