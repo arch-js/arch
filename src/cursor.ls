@@ -1,7 +1,7 @@
 Immutable = require 'immutable'
 require! 'bluebird'
 
-{map, take, reverse, each, join, split, is-type, empty} = require 'prelude-ls'
+{map, take, reverse, reject, each, join, split, is-type, empty} = require 'prelude-ls'
 
 UpdateTransaction = !->
   @promises = []
@@ -128,6 +128,10 @@ Cursor.prototype.start-transaction = ->
   t = new UpdateTransaction!
   @_root._transactions.push t
   return t
+
+Cursor.prototype.remove-listener = (fn) !->
+  key = join '.', @_path
+  @_root._listeners[key] = @_root._listeners[key] |> reject (is fn)
 
 Cursor.prototype.has-listener = ->
   key = join '.', @_path

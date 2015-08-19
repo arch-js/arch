@@ -298,6 +298,16 @@ describe "cursor" (_) ->
 
       expect log .to-equal ["first", "second"]
 
+  describe "remove-listener", (_) ->
+    it "removes all listeners that are equal to the supplied" ->
+      data = cursor raw-data
+      fn = (-> null)
+      data.on-change fn
+      data.on-change fn
+      expect(data._root._listeners[data._path].length) .to-equal 2
+      data.remove-listener fn
+      expect(data._root._listeners[data._path].length) .to-equal 0
+
   describe "has-listener", (_) ->
     it "returns true if the cursor has a listener at its current path" ->
       data = cursor raw-data
