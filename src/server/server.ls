@@ -10,7 +10,7 @@ require! <[
 
 defaults =
   environment: process.env.NODE_ENV or 'development'
-  port: 3000
+  port: process.env.ARCH_PORT or 3000
   paths:
     app:
       abs: path.resolve '.'
