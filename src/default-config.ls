@@ -36,5 +36,7 @@ conf-files = (filter filter-configs, map((-> path.resolve '.', it), files))
 if conf-files.length > 1
   console.error 'Multiple configs found. Please have one arch.config.ls or arch.config.js'
   module.exports = initial-conf
-else
+else if conf-files.length === 1
   module.exports = merge initial-conf, parser(first conf-files)
+else
+  module.exports = initial-conf
