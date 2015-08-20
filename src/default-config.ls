@@ -21,7 +21,7 @@ merge = (x, xs) -> x import xs
 
 initial-conf =
   app-path:     process.env.arch_app_path or path.resolve '.'
-  arch-path:    process.env.arch_port or path.dirname require.resolve '../package.json'
+  arch-path:    process.env.ARCH_PORT or process.env.arch_port or path.dirname require.resolve '../package.json' # TODO: Deprecate ARCH_PORT (caps) in future (use another convention)
   bundle:       process.env.arch_bundle or true
   debug:        process.env.arch_debug or false
   environment:  process.env.arch_environment or process.env.NODE_ENV or 'development'
