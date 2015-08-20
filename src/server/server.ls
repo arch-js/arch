@@ -90,4 +90,3 @@ arch-post = (app, url, post-data, options) ->
 
     html = render-body meta, body, app-state, options
     [200, {}, html]
-

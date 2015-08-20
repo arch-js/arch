@@ -1,9 +1,11 @@
 require! {
   'deep-extend'
   path
-  './default-config': 'config'
+  './default-config'
   webpack
 }
+
+config = default-config
 
 entry-point = require.resolve config.app-path
 app-modules = path.join config.app-path, 'node_modules'
