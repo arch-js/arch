@@ -333,3 +333,20 @@ describe "cursor" (_) ->
     it "returns false if data is defined" ->
       data = cursor raw-data
       expect(data.get "person" .is-empty!) .to-equal false
+
+  describe "force-update", (_) ->
+    it "updates data even if value is same and a primitive" ->
+      data = cursor raw-data .get "name"
+      data.update -> "Paul"
+      spy = jasmine.create-spy!
+      data.on-change spy
+      data.force-update -> "Paul"
+      expect(spy) .toHaveBeenCalled!
+
+    it "updates data even if value is same and an object" ->
+      data = cursor raw-data .get "guitar"
+      data.update -> strings: 6
+      spy = jasmine.create-spy!
+      data.on-change spy
+      data.force-update -> strings: 6
+      expect(spy) .toHaveBeenCalled!

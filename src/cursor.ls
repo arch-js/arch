@@ -54,14 +54,15 @@ flush-updates = (updates) ->
 
     updates.shift!
 
-perform-update = (cursor, update) ->
+perform-update = (cursor, update, force-update) ->
   old-val = cursor.raw!
 
   new-val = update cursor.deref!
   new-val = Immutable.fromJS(new-val) if is-type 'Array', new-val or is-type 'Object', new-val
 
-  return if old-val is new-val
-  return if Immutable.is(old-val, new-val)
+  unless force-update
+    return if old-val is new-val
+    return if Immutable.is(old-val, new-val)
 
   new-data = if empty cursor._path
     new-val
@@ -103,16 +104,19 @@ Cursor.prototype.deref = ->
 Cursor.prototype.raw = ->
   @_root._data.get-in @_path
 
-Cursor.prototype.update = (cbk) ->
+Cursor.prototype.update = (cbk, force-update) ->
   updates = @_root._updates
-  updates.push [this, cbk]
+  updates.push [this, cbk, force-update]
   return unless updates.length < 2
 
   until empty updates
-    [cursor, update] = updates[0]
-    perform-update cursor, update
+    [cursor, update, force-update] = updates[0]
+    perform-update cursor, update, force-update
 
     updates.shift!
+
+Cursor.prototype.force-update = (cbk) ->
+  this.update cbk, true
 
 Cursor.prototype._swap = (new-data) ->
   throw "_swap can only be called on the root cursor" unless this is @_root
