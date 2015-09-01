@@ -1,4 +1,4 @@
-require! <[ path fs lson ]>
+require! <[ path fs ]>
 
 { filter, map, first, join, keys } = require 'prelude-ls'
 
