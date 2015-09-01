@@ -51,9 +51,9 @@ change-inputs = (inputs, post-data) ->
     it.props.on-change (fake-event it, value: post-data[it.props.name]) if it.props.on-change
     ReactUpdates.flushBatchedUpdates!
 
-submit-form = (form) ->
+submit-form = (form, values) ->
   if form and form.props and form.props.on-submit
-    form.props.on-submit fake-event form
+    form.props.on-submit (fake-event form, value: values)
     ReactUpdates.flushBatchedUpdates!
 
 # Public
@@ -79,7 +79,7 @@ process-form = (root-element, initial-state, post-data, path) ->
 
   # trigger handlers
   change-inputs inputs, post-data
-  submit-form form
+  submit-form form, post-data
 
 route-metadata = (root-element, initial-state) ->
   configure-react!
