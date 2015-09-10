@@ -5,7 +5,7 @@ require! {
   webpack
 }
 
-config = default-config
+config = default-config!
 
 entry-point = require.resolve config.app-path
 app-modules = path.join config.app-path, 'node_modules'

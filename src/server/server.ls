@@ -10,7 +10,7 @@ require! <[
 { each, values, filter, find, flatten, map, first } = require 'prelude-ls'
 
 module.exports = (server-options) ->
-  default-options = default-config # These defaults already have env overwrites applied to them. See default-config.
+  default-options = default-config! # These defaults already have env overwrites applied to them. See default-config.
   options = deep-extend default-options, server-options
 
   app = require options.app-path

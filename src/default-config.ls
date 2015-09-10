@@ -30,13 +30,24 @@ initial-conf =
   port:         process.env.ARCH_PORT or process.env.arch_port or 3000 # TODO: Deprecate ARCH_PORT (caps) in future (use another convention)
   watch:        process.env.arch_watch or process.env.NODE_ENV isnt 'production'
 
-files = fs.readdir-sync (path.dirname '.')
-conf-files = (filter filter-configs, map((-> path.resolve '.', it), files))
+config = null
 
-if conf-files.length > 1
-  console.error 'Multiple configs found. Please have one arch.config.ls or arch.config.js'
-  module.exports = initial-conf
-else if conf-files.length === 1
-  module.exports = merge initial-conf, parser(first conf-files)
-else
-  module.exports = initial-conf
+default-config = ->
+  return config if config
+
+  files = fs.readdir-sync (path.dirname '.')
+  conf-files = (filter filter-configs, map((-> path.resolve '.', it), files))
+
+  if conf-files.length > 1
+    console.error 'Multiple configs found. Please have one arch.config.ls or arch.config.js'
+    config = initial-conf
+  else if conf-files.length === 1
+    config = merge initial-conf, parser(first conf-files)
+  else
+    config = initial-conf
+
+  return config
+
+default-config.parsers = parsers
+
+module.exports = default-config
