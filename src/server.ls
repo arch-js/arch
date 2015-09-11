@@ -37,7 +37,7 @@ module.exports = (options) ->
     .spread (status, headers, body) ->
       res.status status .set headers .send body
 
-  use: server.use
+  use: server.use.bind(server)
   inst: server
   start: (cb) ->
     server
