@@ -18,6 +18,9 @@ module.exports = (options) ->
   app = require options.app-path
 
   server = express!
+    .use (req, res, next) ->
+      req.app-state = {}
+      next!
     .use "/#{options.public-path}", express.static path.join(options.app-path, options.public-path)
     .use body-parser.urlencoded extended: false
     .use cookie-parser!
@@ -34,6 +37,7 @@ module.exports = (options) ->
     .spread (status, headers, body) ->
       res.status status .set headers .send body
 
+  use: server.use
   inst: server
   start: (cb) ->
     server

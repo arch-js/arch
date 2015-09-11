@@ -24,8 +24,8 @@ app-component = React.create-factory React.create-class do
       # FIXME make this user editable
       span "Page not found."
 
-init-app-state = (initial-state, route-context, cookies) ->
-  cursor state: initial-state, route: route-context, cookies: cookies
+init-app-state = (app-state = {}, initial-state, route-context, cookies) ->
+  cursor (app-state import state: initial-state, route: route-context, cookies: cookies)
 
 observe-page-change = (root-tree, app-state) ->
   app-state.get \route .on-change (route) ->
@@ -67,7 +67,7 @@ module.exports =
           parsed-cookies = client-cookies
             |> keys
             |> map (k) -> cookie.serialize(k, client-cookies[k])
-          init-app-state app.get-initial-state!, routes.resolve(route-set, pathname), parsed-cookies
+          init-app-state {}, app.get-initial-state!, routes.resolve(route-set, pathname), parsed-cookies
 
         # Boot the app
 
@@ -105,7 +105,7 @@ module.exports =
           |> keys
           |> map (k) -> cookie.serialize(k, client-cookies[k])
 
-        app-state = init-app-state app.get-initial-state!, null, []
+        app-state = init-app-state req.app-state, app.get-initial-state!, null, []
 
         transaction = app-state.start-transaction!
 
@@ -141,7 +141,7 @@ module.exports =
           |> map (k) -> cookie.serialize(k, client-cookies[k])
 
         route-set = app.routes!
-        app-state = init-app-state app.get-initial-state!, null, []
+        app-state = init-app-state req.app-state, app.get-initial-state!, null, []
 
         app-state.get 'cookies' .on-change (cookies) ->
           res.set('Set-Cookie', cookies);
