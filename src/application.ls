@@ -58,20 +58,24 @@ module.exports =
         # Initialise app state
 
         state-node = document.get-element-by-id "arch-state"
-        server-state = JSON.parse unesc(state-node.text)
+        if state-node then server-state = JSON.parse unesc(state-node.text)
 
         app-state = if server-state
           cursor server-state
         else
-          client-cookies = cookie.parse document.cookie
-          parsed-cookies = client-cookies
-            |> keys
-            |> map (k) -> cookie.serialize(k, client-cookies[k])
-          init-app-state {}, app.get-initial-state!, routes.resolve(route-set, pathname), parsed-cookies
+          init-app-state {}, app.get-initial-state!, {}, {}
 
         # Boot the app
 
         app.start app-state
+
+        unless server-state
+          app-state.get 'cookies' .update ->
+            cookie.parse document.cookie
+            |> keys
+            |> map (k) -> cookie.serialize(k, client-cookies[k])
+
+          app-state.get 'route' .update -> routes.resolve(route-set, path)
 
         # Mount the root component
 
