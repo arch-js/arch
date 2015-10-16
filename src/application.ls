@@ -71,7 +71,8 @@ module.exports =
 
         unless server-state
           app-state.get 'cookies' .update ->
-            cookie.parse document.cookie
+            client-cookies = cookie.parse document.cookie
+            client-cookies
             |> keys
             |> map (k) -> cookie.serialize(k, client-cookies[k])
 
